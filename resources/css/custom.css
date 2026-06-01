@@ -1,0 +1,33 @@
+/* Sidebar más ancho */
+.main-sidebar {
+    width: 280px !important; /* fuerza el ancho */
+}
+
+/* Menús principales */
+.main-sidebar .nav-sidebar > .nav-item > .nav-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 10px 15px !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+}
+
+/* Submenús */
+.main-sidebar .nav-sidebar .nav-treeview > .nav-item > .nav-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 8px 30px !important; /* más espacio hacia la derecha */
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    font-size: 14px !important;
+}
+
+/* Flecha de los menús desplegables: moverla a la derecha */
+.main-sidebar .nav-sidebar .nav-item > .nav-link .right {
+    margin-left: auto; /* empuja la flecha al extremo derecho */
+    position: relative;
+}
