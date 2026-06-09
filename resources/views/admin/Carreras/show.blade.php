@@ -28,12 +28,8 @@
             </div>
 
             <div class="card-footer">
-                <a href="{{ route('admin.carreras.index') }}" class="btn btn-secondary">
-                    Volver
-                </a>
-                <a href="{{ route('admin.carreras.edit', $carrera) }}" class="btn btn-primary">
-                    Editar
-                </a>
+                <a href="{{ route('admin.carreras.index') }}" class="btn btn-secondary">VOLVER</a>
+                <a href="{{ route('admin.carreras.edit', $carrera) }}" class="btn btn-success">EDITAR</a>
             </div>
         </div>
     </div>

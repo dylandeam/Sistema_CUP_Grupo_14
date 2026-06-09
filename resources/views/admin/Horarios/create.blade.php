@@ -17,6 +17,28 @@
                     <form action="{{ url('admin/horarios') }}" method="post">
                         @csrf
 
+                        {{-- Turno --}}
+                        <div class="form-group">
+                            <label for="turno_id">Turno: </label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-list"></i></span>
+                                </div>
+                                <select name="turno_id" class="form-control" required>
+                                    <option value="">-- Seleccione un turno --</option>
+                                    @foreach($turnos as $turno)
+                                        <option value="{{ $turno->id }}" 
+                                            {{ old('turno_id') == $turno->id ? 'selected' : '' }}>
+                                            {{ $turno->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('turno_id')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
                         {{-- Hora de inicio --}}
                         <div class="form-group">
                             <label for="hora_inicio">Hora de inicio: </label>
@@ -49,8 +71,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <a href="{{ url('/admin/horarios') }}" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Registrar</button>
+                            <a href="{{ url('/admin/horarios') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-primary">REGISTRAR</button>
                         </div>
                     </form>
                 </div>

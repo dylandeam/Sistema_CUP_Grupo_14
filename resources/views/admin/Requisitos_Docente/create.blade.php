@@ -15,7 +15,7 @@
 
             <div class="card-body">
                 {{-- Formulario de requisitos --}}
-                <form action="{{ route('admin.requisitos_docente.store', $docente->id) }}" method="post">
+                <form action="{{ route('admin.requisitos_docente.store', $docente) }}" method="post">
                     @csrf
 
                     {{-- Checkbox Título --}}

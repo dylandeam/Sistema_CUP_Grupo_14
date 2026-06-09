@@ -69,8 +69,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <a href="{{ url('/admin/gestiones') }}" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Registrar</button>
+                            <a href="{{ url('/admin/gestiones') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-primary">REGISTRAR</button>
                         </div>
                     </form>
                 </div>

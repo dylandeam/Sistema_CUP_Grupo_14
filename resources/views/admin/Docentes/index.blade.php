@@ -15,10 +15,12 @@
                 <div class="card-header">
                     <h3 class="card-title">Docentes Registrados</h3>
                     <div class="card-tools">
-                        {{-- Botón para contratar docente (lleva al formulario de datos personales) --}}
-                        <a href="{{ route('admin.docentes.create') }}" class="btn btn-primary">
-                            Contratar Docente
-                        </a>
+
+                        {{-- Botón para importar docentes desde Excel/CSV --}}
+                        <a href="{{ url('/admin/docentes/import/form') }}" class="btn btn-success">Importar Excel/CSV</a>
+
+                        {{-- Botón para contratar docente --}}
+                        <a href="{{ url('/admin/docentes/create') }}" class="btn btn-primary">Contratar Docente</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -51,7 +53,8 @@
                                     <td class="email-cell">{{ $docente->user->email }}</td>
                                     <td style="text-align: center">{{ $docente->telefono }}</td>
                                     <td style="text-align: center">
-                                        @if($docente->estado == 'activo')
+                                        @php $estadoAsignacion = $docente->estado_asignacion ?? 'baja'; @endphp
+                                        @if($estadoAsignacion == 'activo')
                                             <span class="badge badge-success">Activo</span>
                                         @else
                                             <span class="badge badge-danger">Baja</span>
@@ -66,12 +69,12 @@
                                     </td>
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('admin.docentes.show', $docente->id) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                                            <a href="{{ route('admin.docentes.edit', $docente->id) }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i></a>
-                                            <form action="{{ route('admin.docentes.destroy', $docente->id) }}" method="POST" id="miformulario{{ $docente->id }}" style="display:inline;">
+                                            <a href="{{ route('admin.docentes.show', $docente) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                            <a href="{{ route('admin.docentes.edit', $docente) }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i></a>
+                                            <form action="{{ route('admin.docentes.destroy', $docente) }}" method="POST" id="miformulario{{ $docente->codigo }}" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" onclick="confirmarEliminacion(event, {{ $docente->id }})" class="btn btn-danger btn-sm">
+                                                <button type="submit" onclick="confirmarEliminacion(event, '{{ $docente->codigo }}')" class="btn btn-danger btn-sm">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>

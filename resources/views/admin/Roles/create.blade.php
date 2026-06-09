@@ -12,7 +12,7 @@
             <div class="card-header">
                 <h3 class="card-title">Rellene los datos del formulario</h3>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 20px;">
 
                 {{-- Formulario para crear un nuevo rol --}}
                 <form action="{{ route('admin.roles.store') }}" method="POST">
@@ -36,21 +36,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <hr>
 
-                {{-- Botones de acción --}}
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Registrar</button>
-                        </div>
+                    <hr>
+
+                    {{-- Botones de Acción --}}
+                    <div class="form-group">
+                        <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">CANCELAR</a>
+                        <button type="submit" class="btn btn-primary">REGISTRAR</button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>  
         </div>  
     </div>   
+</div>
 @stop        
 
 @section('css')

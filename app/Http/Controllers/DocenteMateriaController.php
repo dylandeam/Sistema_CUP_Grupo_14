@@ -23,9 +23,8 @@ class DocenteMateriaController extends Controller
     /**
      * Formulario para asignar materias a un docente
      */
-    public function create($docente_id)
+    public function create(Docente $docente)
     {
-        $docente = Docente::findOrFail($docente_id);
         $materias = Materia::all();
 
         return view('admin.docente_materia.create', compact('docente','materias'));
@@ -34,20 +33,20 @@ class DocenteMateriaController extends Controller
     /**
      * Guardar asignación
      */
-    public function store(Request $request, $docente_id)
+    public function store(Request $request, Docente $docente)
     {
         $request->validate([
             'materia_id' => 'required|exists:materias,id',
-            'estado'     => 'required|in:contratado,baja',
+            'estado'     => 'required|in:activo,baja',
         ]);
 
         Docente_Materia::create([
-            'docente_id' => $docente_id,
-            'materia_id' => $request->materia_id,
-            'estado'     => $request->estado,
+            'codigo_docente' => $docente->codigo,
+            'materia_id'     => $request->materia_id,
+            'estado'         => $request->estado,
         ]);
 
-        BitacoraService::registrar('Asignó materia al docente ID ' . $docente_id);
+        BitacoraService::registrar('Asignó materia al docente ' . $docente->codigo);
 
         return redirect()->route('admin.docentes.index')
             ->with('mensaje','Materia asignada correctamente al docente')
@@ -72,7 +71,7 @@ class DocenteMateriaController extends Controller
     {
         $request->validate([
             'materia_id' => 'required|exists:materias,id',
-            'estado'     => 'required|in:contratado,baja',
+            'estado'     => 'required|in:activo,baja',
         ]);
 
         $asignacion = Docente_Materia::findOrFail($id);

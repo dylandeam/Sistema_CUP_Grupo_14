@@ -10,9 +10,23 @@ class Horario extends Model
     use HasFactory;
 
     protected $table = 'horarios'; // nombre de la tabla
-    protected $primaryKey = 'id'; // llave primaria id
+
     protected $fillable = [
+        'turno_id',
         'hora_inicio',
         'hora_fin',
     ];
+
+    /**
+     * Relación: un horario pertenece a un turno.
+     */
+    public function turno()
+    {
+        return $this->belongsTo(Turno::class, 'turno_id');
+    }
+
+    public function getDescripcionAttribute(): string
+    {
+        return sprintf('%s - %s', $this->hora_inicio, $this->hora_fin);
+    }
 }

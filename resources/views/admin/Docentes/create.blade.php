@@ -8,177 +8,312 @@
 @section('content')
 <div class="row">
     <div class="col-md-12">
-        <div class="card card-primary">
-            <div class="card-header">
-                <h3 class="card-title">Registro de Docente</h3>
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
+        @endif
 
-            <div class="card-body">
-                @if($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+        <form action="{{ route('admin.docentes.store') }}" method="post" enctype="multipart/form-data" id="form-docente">
+            @csrf
 
-                <form action="{{ route('admin.docentes.store') }}" method="post" enctype="multipart/form-data" id="form-docente">
-                    @csrf
+            {{-- 1. DATOS PERSONALES --}}
+            <div class="card card-outline card-primary mb-4">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">1. Datos personales</h3>
+                </div>
+                <div class="card-body">
 
-                    {{-- 1. DATOS PERSONALES --}}
-                    <div class="card card-outline card-primary mb-4">
-                        <div class="card-header bg-primary">
-                            <h3 class="card-title">1. Datos personales</h3>
-                        </div>
-                        <div class="card-body">
+                    {{-- Código --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="nombre">Nombre</label>
+                                <label for="codigo">Código:</label>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-barcode"></i></span></div>
+                                    <input type="text" class="form-control" id="codigo" name="codigo"
+                                           value="{{ old('codigo') }}" placeholder="Se generará automáticamente" readonly>
+                                </div>
+                                @error('codigo')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Rol --}}
+                        <div class="col-md-6">
+                            @php $docenteRole = $roles->firstWhere('name', 'DOCENTE'); @endphp
+                            <input type="hidden" name="rol" value="{{ $docenteRole->name }}">
+                            <div class="form-group">
+                                <label>Rol:</label>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user-shield"></i></span></div>
+                                    <input type="text" class="form-control" value="{{ $docenteRole->name }}" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Nombre --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nombre">Nombre:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user"></i></span></div>
-                                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ old('nombre') }}" placeholder="Ej: Juan" required>
+                                    <input type="text" class="form-control" id="nombre" name="nombre"
+                                           value="{{ old('nombre') }}" placeholder="Ej: Juan" required>
                                 </div>
+                                @error('nombre')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
 
+                        {{-- Apellido --}}
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="apellido">Apellido</label>
+                                <label for="apellido">Apellido:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-user-tag"></i></span></div>
-                                    <input type="text" class="form-control" id="apellido" name="apellido" value="{{ old('apellido') }}" placeholder="Ej: Pérez" required>
+                                    <input type="text" class="form-control" id="apellido" name="apellido"
+                                           value="{{ old('apellido') }}" placeholder="Ej: Pérez" required>
                                 </div>
+                                @error('apellido')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- CI --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="ci">CI</label>
+                                <label for="ci">CI:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-id-card"></i></span></div>
-                                    <input type="text" class="form-control" id="ci" name="ci" value="{{ old('ci') }}" placeholder="Ej: 9876543" required>
+                                    <input type="text" class="form-control" id="ci" name="ci"
+                                           value="{{ old('ci') }}" placeholder="Ej: 9876543" required>
                                 </div>
+                                @error('ci')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
 
+                        {{-- Fecha de nacimiento --}}
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                                <label for="fecha_nacimiento">Fecha de nacimiento:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-calendar"></i></span></div>
-                                    <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
+                                    <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento"
+                                           value="{{ old('fecha_nacimiento') }}" required>
                                 </div>
+                                @error('fecha_nacimiento')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- Email  --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="email">Email</label>
+                                <label for="email">Email:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-envelope"></i></span></div>
-                                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Ej: ejemplo@correo.com" required>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           value="{{ old('email') }}" placeholder="Ej: ejemplo@correo.com" required>
                                 </div>
+                                @error('email')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
 
+                        {{-- Teléfono --}}
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="telefono">Teléfono</label>
+                                <label for="telefono">Teléfono:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-phone"></i></span></div>
-                                    <input type="text" class="form-control" id="telefono" name="telefono" value="{{ old('telefono') }}" placeholder="Ej: 70012345">
+                                    <input type="text" class="form-control" id="telefono" name="telefono"
+                                           value="{{ old('telefono') }}" placeholder="Ej: 70012345">
                                 </div>
+                                @error('telefono')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- Dirección --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="direccion">Dirección</label>
+                                <label for="direccion">Dirección:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span></div>
-                                    <input type="text" class="form-control" id="direccion" name="direccion" value="{{ old('direccion') }}" placeholder="Ej: Av. Busch #123">
+                                    <input type="text" class="form-control" id="direccion" name="direccion"
+                                           value="{{ old('direccion') }}" placeholder="Ej: Av. Busch #123">
                                 </div>
+                                @error('direccion')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- Foto --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="foto">Foto</label>
+                                <label for="foto">Foto:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-image"></i></span></div>
-                                    <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewFoto(event)">
+                                    <input type="file" class="form-control" id="foto" name="foto"
+                                           accept="image/*" onchange="previewFoto(event)">
                                 </div>
+                                @error('foto')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                                 <div class="mt-2">
-                                    <img id="preview_foto" src="{{ asset('images/default-user.png') }}" alt="Previsualización" width="150" class="img-thumbnail" style="display:none;">
+                                    <img id="preview_foto" src="{{ asset('images/default-user.png') }}"
+                                         alt="Previsualización" width="150" class="img-thumbnail" style="display:none;">
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 2. REQUISITOS ACADÉMICOS (SIN CHECKBOXES) --}}
-                    <div class="card card-outline card-success mb-4">
-                        <div class="card-header bg-success">
-                            <h3 class="card-title">2. Requisitos académicos</h3>
-                        </div>
-                        <div class="card-body">
-                            
+                </div>
+            </div>
+
+            {{-- 2. REQUISITOS ACADÉMICOS --}}
+            <div class="card card-outline card-success mb-4">
+                <div class="card-header bg-success">
+                    <h3 class="card-title">2. Requisitos académicos</h3>
+                </div>
+                <div class="card-body">
+
+                    {{-- Título --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="nombre_titulo">Nombre del Título</label>
-                                <div class="input-group">
+                                <label for="nombre_titulo">Nombre del Título:</label>
+                                <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-graduation-cap"></i></span></div>
-                                    <input type="text" class="form-control requisito-input" id="nombre_titulo" name="nombre_titulo" value="{{ old('nombre_titulo') }}" placeholder="Ej: Licenciatura en Informática" required>
+                                    <input type="text" class="form-control requisito-input" id="nombre_titulo" name="nombre_titulo"
+                                           value="{{ old('nombre_titulo') }}" placeholder="Ej: Licenciatura en Informática" required>
                                 </div>
+                                @error('nombre_titulo')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
 
+                        {{-- Maestría --}}
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="nombre_maestria">Nombre de la Maestría</label>
-                                <div class="input-group">
+                                <label for="nombre_maestria">Nombre de la Maestría:</label>
+                                <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-award"></i></span></div>
-                                    <input type="text" class="form-control requisito-input" id="nombre_maestria" name="nombre_maestria" value="{{ old('nombre_maestria') }}" placeholder="Ej: Maestría en Ciencias de la Computación" required>
+                                    <input type="text" class="form-control requisito-input" id="nombre_maestria" name="nombre_maestria"
+                                           value="{{ old('nombre_maestria') }}" placeholder="Ej: Maestría en Ciencias de la Computación" required>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="nombre_diplomado">Nombre del Diplomado</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-certificate"></i></span></div>
-                                    <input type="text" class="form-control requisito-input" id="nombre_diplomado" name="nombre_diplomado" value="{{ old('nombre_diplomado') }}" placeholder="Ej: Diplomado en Educación Superior" required>
-                                </div>
-                            </div>
-
-                            {{-- Contenedor dinámico de alertas abajo de los requisitos --}}
-                            <div id="error_requisitos" class="alert alert-danger mt-3" style="display: none;">
-                                <i class="fas fa-exclamation-triangle mr-2"></i> <span id="error_mensaje_texto">No cumple con los requisitos, por lo tanto, no puede ser contratado.</span>
+                                @error('nombre_maestria')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                     </div>
 
-                    {{-- 3. MATERIA Y ESTADO --}}
-                    <div class="card card-outline card-info mb-4">
-                        <div class="card-header bg-info">
-                            <h3 class="card-title">3. Materia y estado de contratación</h3>
-                        </div>
-                        <div class="card-body">
+                    {{-- Diplomado --}}
+                    <div class="row">
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="materia_id">Materia</label>
+                                <label for="nombre_diplomado">Nombre del Diplomado:</label>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-certificate"></i></span></div>
+                                    <input type="text" class="form-control requisito-input" id="nombre_diplomado" name="nombre_diplomado"
+                                           value="{{ old('nombre_diplomado') }}" placeholder="Ej: Diplomado en Educación Superior" required>
+                                </div>
+                                @error('nombre_diplomado')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="error_requisitos" class="alert alert-danger mt-3" style="display: none;">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <span id="error_mensaje_texto">No cumple con los requisitos, por lo tanto, no puede ser contratado.</span>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- 3. MATERIA Y ESTADO --}}
+            <div class="card card-outline card-info mb-4">
+                <div class="card-header bg-info">
+                    <h3 class="card-title">3. Materia y estado de contratación</h3>
+                </div>
+                <div class="card-body">
+
+                    {{-- Materia --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="materia_id">Materia:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-book"></i></span></div>
                                     <select id="materia_id" name="materia_id" class="form-control" required>
                                         <option value="">Selecciona una materia</option>
                                         @foreach($materias as $materia)
-                                            <option value="{{ $materia->id }}" {{ old('materia_id') == $materia->id ? 'selected' : '' }}>{{ $materia->nombre }}</option>
+                                            <option value="{{ $materia->id }}" {{ old('materia_id') == $materia->id ? 'selected' : '' }}>
+                                                {{ $materia->nombre }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
+                                @error('materia_id')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
+                        </div>
 
+                        {{-- Estado de contratación --}}
+                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="estado">Estado de contratación</label>
+                                <label for="estado">Estado de contratación:</label>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-check-circle"></i></span></div>
                                     <select id="estado" name="estado" class="form-control" required>
                                         <option value="activo" {{ old('estado') == 'activo' ? 'selected' : '' }}>Activo</option>
-                                        <option value="baja" {{ old('estado') == 'baja' ? 'selected' : '' }}>Baja</option>
+                                        <option value="baja"   {{ old('estado') == 'baja'   ? 'selected' : '' }}>Baja</option>
                                     </select>
                                 </div>
+                                @error('estado')
+                                    <small style="color: red;">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <a href="{{ route('admin.docentes.index') }}" class="btn btn-secondary">Cancelar</a>
-                        <button type="submit" id="btn-submit" class="btn btn-success">Registrar Docente</button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            {{-- Botones de Acción --}}
+            <div class="form-group">
+                <a href="{{ route('admin.docentes.index') }}" class="btn btn-secondary">CANCELAR</a>
+                <button type="submit" id="btn-submit" class="btn btn-primary">REGISTRAR</button>
+            </div>
+        </form>
     </div>
 </div>
 @stop
@@ -188,7 +323,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const inputsRequisitos = document.querySelectorAll('.requisito-input');
         
-        // Ejecutar validación cada vez que el usuario escriba en los campos académicos
+        // Validar cada vez que el usuario escriba en los campos académicos
         inputsRequisitos.forEach(input => {
             input.addEventListener('input', validarRequisitos);
         });
@@ -197,6 +332,7 @@
         validarRequisitos();
     });
 
+    // Función para validar los requisitos académicos 
     function validarRequisitos() {
         const titulo = document.getElementById('nombre_titulo').value.trim();
         const maestria = document.getElementById('nombre_maestria').value.trim();

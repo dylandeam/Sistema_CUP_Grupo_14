@@ -32,12 +32,8 @@
             </div>
 
             <div class="card-footer">
-                <a href="{{ route('admin.gestiones.index') }}" class="btn btn-secondary">
-                    Volver
-                </a>
-                <a href="{{ route('admin.gestiones.edit', $gestion) }}" class="btn btn-primary">
-                    Editar
-                </a>
+                <a href="{{ route('admin.gestiones.index') }}" class="btn btn-secondary">VOLVER</a>
+                <a href="{{ route('admin.gestiones.edit', $gestion) }}" class="btn btn-success">EDITAR</a>
             </div>
         </div>
     </div>

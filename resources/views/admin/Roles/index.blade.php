@@ -52,7 +52,7 @@
                                             @method('DELETE')
                                             <button type="button"
                                                     class="btn btn-danger btn-sm"
-                                                    onclick="confirmarEliminacion({{ $role->id }})">
+                                                    onclick="confirmarEliminacion(event, {{ $role->id }})">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -112,7 +112,9 @@
     <script>
         // Script único para confirmación de eliminación
         function confirmarEliminacion(event, id) {
-            event.preventDefault();
+            if (event) {
+                event.preventDefault();
+            }
             Swal.fire({
                 title: '¿Desea eliminar este Rol?',
                 icon: 'question',
@@ -123,7 +125,7 @@
                 denyButtonColor: '#6c757d',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById('miformulario' + id).submit();
+                    document.getElementById('form-eliminar-' + id).submit();
                 }
             });
         }

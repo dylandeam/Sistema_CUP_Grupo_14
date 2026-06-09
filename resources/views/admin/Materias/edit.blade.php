@@ -14,7 +14,6 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- Formulario para editar una materia existente --}}
                     <form action="{{ url('/admin/materias/'.$materia->id) }}" method="post">
                         @csrf
                         @method('PUT')
@@ -41,8 +40,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <button type="submit" class="btn btn-success">Actualizar Materia</button>
-                            <a href="{{ url('admin/materias') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ url('admin/materias') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                         </div>
                     </form>
                 </div>

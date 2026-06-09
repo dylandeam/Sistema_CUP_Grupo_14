@@ -47,15 +47,6 @@ class MateriaController extends Controller
         ->with('icono', 'success');
 }
 
-
-    /**
-     * Mostrar una materia específica.
-     */
-    public function show(Materia $materia)
-    {
-        return view('admin.materias.show', compact('materia'));
-    }
-
     /**
      * Mostrar formulario de edición.
      */

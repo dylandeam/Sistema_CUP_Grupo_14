@@ -55,13 +55,6 @@ class AulaController extends Controller
             ->with('icono', 'success');
     }
 
-    /**
-     * Mostrar aula específica.
-     */
-    public function show(Aula $aula)
-    {
-        return view('admin.aulas.show', compact('aula'));
-    }
 
     /**
      * Formulario de edición.

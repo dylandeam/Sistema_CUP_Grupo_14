@@ -14,27 +14,33 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- Formulario para editar un rol existente --}}
                     <form action="{{ url('/admin/gestiones/'.$gestion->id) }}" method="post">
                         @csrf
                         @method('PUT')
 
-                        {{-- Semestre --}}
-                        <div class="form-group">
-                            <label for="semestre">Semestre: </label>
-                            <input type="text" class="form-control" id="semestre" name="semestre" value="{{ old('semestre', $gestion->semestre) }}" required>
-                            @error('semestre')
-                                <small style="color: red;">{{ $message }}</small>
-                            @enderror
+                        <div class="row">
+                            {{-- Semestre --}}
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="semestre">Semestre: </label>
+                                    <input type="text" class="form-control" id="semestre" name="semestre" value="{{ old('semestre', $gestion->semestre) }}" required>
+                                    @error('semestre')
+                                        <small style="color: red;">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
-
-                        {{-- Año --}}
-                        <div class="form-group">
-                            <label for="año">Año: </label>
-                            <input type="text" class="form-control" id="año" name="año" value="{{ old('año', $gestion->año) }}" required>
-                            @error('año')
-                                <small style="color: red;">{{ $message }}</small>
-                            @enderror
+                        <div class="row">
+                            {{-- Año --}}
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="año">Año: </label>
+                                    <input type="text" class="form-control" id="año" name="año" value="{{ old('año', $gestion->año) }}" required>
+                                    @error('año')
+                                        <small style="color: red;">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Estado --}}
@@ -58,8 +64,8 @@
 
                         {{-- Botones de Accion (Actualizar y Cancelar) --}}
                         <div class="form-group">
-                            <button type="submit" class="btn btn-success">Actualizar Gestión</button>
-                            <a href="{{ url('admin/gestiones') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ url('admin/gestiones') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                         </div>
                     </form>
                 </div>

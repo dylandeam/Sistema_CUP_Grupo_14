@@ -14,7 +14,7 @@ class Docente_Materia extends Model
 
     // Campos que se pueden asignar masivamente
     protected $fillable = [
-        'docente_id',
+        'codigo_docente',
         'materia_id',
         'estado',
     ];
@@ -24,7 +24,7 @@ class Docente_Materia extends Model
      */
     public function docente()
     {
-        return $this->belongsTo(Docente::class, 'docente_id');
+        return $this->belongsTo(Docente::class, 'codigo_docente', 'codigo');
     }
 
     /**

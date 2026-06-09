@@ -45,17 +45,16 @@ class RequisitoDocenteController extends Controller
         }
 
         Requisitos_Docente::create([
-            'docente_id'       => $docente->id,
+            'docente_codigo'   => $docente->codigo,
             'titulo'           => $request->titulo,
             'nombre_titulo'    => $request->nombre_titulo,
             'maestria'         => $request->maestria,
             'nombre_maestria'  => $request->nombre_maestria,
             'diplomado'        => $request->diplomado,
             'nombre_diplomado' => $request->nombre_diplomado,
-            'area_especialidad'=> $area,
         ]);
 
-        return redirect()->route('admin.docente_materia.create', $docente->id)
+        return redirect()->route('admin.docente_materia.create', $docente)
             ->with('mensaje','Requisitos registrados correctamente. Ahora puede asignar materias.');
     }
 

@@ -49,7 +49,6 @@
                                 <p>
                                     <strong>Teléfono:</strong> {{ $administrativo->telefono }}<br>
                                     <strong>Dirección:</strong> {{ $administrativo->direccion }}<br>
-                                    <strong>Cargo:</strong> {{ $administrativo->cargo }}<br>
                                 </p>
                             </div>
                         </div>
@@ -58,25 +57,29 @@
 
                 <hr>
 
-                {{-- Rol del Administrativo --}}
+                {{-- Información de Acceso --}}
                 <div class="row">
                     <div class="col-md-12">
-                        <h5><strong>Información de Acceso</strong></h5>
-                        <p>
-                            <strong>Rol:</strong> 
-                            {{ optional($administrativo->user)->roles->pluck('name')->implode(', ') }}
-                        </p>
+                        <div class="card card-outline card-secondary">
+                            <div class="card-header bg-secondary">
+                                <h5 class="card-title mb-0"><strong>Información de Acceso</strong></h5>
+                            </div>
+                            <div class="card-body">
+                                <p>
+                                    <strong>Rol:</strong>
+                                    {{ optional($administrativo->user)->roles->pluck('name')->implode(', ') }}<br>
+                                    <strong>Cargo:</strong> {{ $administrativo->cargo }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {{--Botones de Acción --}}
             <div class="card-footer">
-                <a href="{{ route('admin.administrativos.index') }}" class="btn btn-secondary">
-                    Volver
-                </a>
-                <a href="{{ route('admin.administrativos.edit', $administrativo) }}" class="btn btn-primary">
-                    Editar
-                </a>
+                <a href="{{ route('admin.administrativos.index') }}" class="btn btn-secondary">VOLVER</a>
+                <a href="{{ route('admin.administrativos.edit', $administrativo) }}" class="btn btn-success">EDITAR</a>
             </div>
         </div>
     </div>

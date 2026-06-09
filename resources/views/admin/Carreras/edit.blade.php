@@ -14,7 +14,6 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- Formulario para editar una carrera existente --}}
                     <form action="{{ url('/admin/carreras/'.$carrera->id) }}" method="post">
                         @csrf
                         @method('PUT')
@@ -51,8 +50,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <button type="submit" class="btn btn-success">Actualizar Carrera</button>
-                            <a href="{{ url('admin/carreras') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ url('admin/carreras') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                         </div>
                     </form>
                 </div>

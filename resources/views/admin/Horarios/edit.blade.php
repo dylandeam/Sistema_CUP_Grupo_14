@@ -14,10 +14,31 @@
                 </div>
                 <div class="card-body">
                     
-                    {{-- Formulario para editar un horario existente --}}
                     <form action="{{ url('/admin/horarios/'.$horario->id) }}" method="post">
                         @csrf
                         @method('PUT')
+
+                        {{-- Turno --}}
+                        <div class="form-group">
+                            <label for="turno_id">Turno: </label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-list"></i></span>
+                                </div>
+                                <select name="turno_id" class="form-control" required>
+                                    <option value="">-- Seleccione un turno --</option>
+                                    @foreach($turnos as $turno)
+                                        <option value="{{ $turno->id }}" 
+                                            {{ old('turno_id', $horario->turno_id) == $turno->id ? 'selected' : '' }}>
+                                            {{ $turno->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('turno_id')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
 
                         {{-- Hora de inicio --}}
                         <div class="form-group">
@@ -41,8 +62,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <button type="submit" class="btn btn-success">Actualizar Horario</button>
-                            <a href="{{ url('admin/horarios') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ url('admin/horarios') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                         </div>
                     </form>
                 </div>

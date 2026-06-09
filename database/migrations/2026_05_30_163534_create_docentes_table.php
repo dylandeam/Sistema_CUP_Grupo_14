@@ -9,14 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('docentes', function (Blueprint $table) {
-            $table->id();
-
             // Relación con users
             $table->unsignedBigInteger('usuario_id');
             $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade');
 
             // Datos principales
-            $table->string('codigo')->unique(); // Código generado automáticamente
+            $table->string('codigo')->primary(); // Código generado automáticamente como PK
             $table->string('nombre');
             $table->string('apellido');
             $table->string('ci')->unique(); // CI único
@@ -24,9 +22,6 @@ return new class extends Migration
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
             $table->string('foto')->nullable();
-
-            // Estado (Activo/Baja)
-            $table->enum('estado', ['activo', 'baja'])->default('activo');
 
             $table->timestamps();
         });

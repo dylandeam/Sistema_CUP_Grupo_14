@@ -11,22 +11,14 @@ return new class extends Migration
         Schema::create('requisitos_docente', function (Blueprint $table) {
             $table->id();
 
-            // Relación con docentes
-            $table->unsignedBigInteger('docente_id');
-            $table->foreign('docente_id')->references('id')->on('docentes')->onDelete('cascade');
+            // Relación con docentes usando su código como FK
+            $table->string('docente_codigo');
+            $table->foreign('docente_codigo')->references('codigo')->on('docentes')->onDelete('cascade');
 
-            // Requisitos principales
-            $table->boolean('titulo')->default(false);
-            $table->string('nombre_titulo')->nullable();
-
-            $table->boolean('maestria')->default(false);
-            $table->string('nombre_maestria')->nullable();
-
-            $table->boolean('diplomado')->default(false);
-            $table->string('nombre_diplomado')->nullable();
-
-            // Área de especialidad (matemáticas, computación, física, inglés)
-            $table->string('area_especialidad')->nullable();
+            // Solo guardamos los nombres
+            $table->string('nombre_titulo');
+            $table->string('nombre_maestria');
+            $table->string('nombre_diplomado');
 
             $table->timestamps();
         });

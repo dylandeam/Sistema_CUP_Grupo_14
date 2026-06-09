@@ -51,8 +51,8 @@
 
                         {{-- Botones de acción --}}
                         <div class="form-group">
-                            <button type="submit" class="btn btn-success">Actualizar Aula</button>
-                            <a href="{{ url('admin/aulas') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ url('admin/aulas') }}" class="btn btn-secondary">CANCELAR</a>
+                            <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                         </div>
                     </form>
                 </div>

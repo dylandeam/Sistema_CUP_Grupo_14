@@ -41,9 +41,9 @@
                     </div>
                 </div>
 
-                <div class="card-footer bg-white">
-                    <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">Volver</a>
-                    <button type="submit" class="btn btn-primary float-right">Registrar permisos</button>
+                <div class="card-footer bg-white d-flex justify-content-end">
+                    <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary mr-2">Volver</a>
+                    <button type="submit" class="btn btn-primary">Registrar Permisos</button>
                 </div>
             </form>
         </div>

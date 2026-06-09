@@ -10,6 +10,9 @@ class Administrativo extends Model
     use HasFactory;
 
     protected $table = 'administrativos';
+    protected $primaryKey = 'codigo';   // PK personalizada
+    public $incrementing = false;       // No autoincrementa
+    protected $keyType = 'string';      // Tipo de la PK
 
     protected $fillable = [
         'usuario_id',

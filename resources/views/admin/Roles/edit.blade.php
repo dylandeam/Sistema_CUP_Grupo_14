@@ -1,14 +1,14 @@
 @extends('adminlte::page')
 
 @section('content_header')
-    <h1><b>Roles/Editar rol</b></h1> {{-- Título principal de la página --}}
+    <h1><b>Roles / Editar rol</b></h1> {{-- Título principal de la página --}}
     <hr>
 @stop
 
 @section('content')
 <div class="row">
     <div class="col-md-12">
-        <div class="card card-success">
+        <div class="card card-primary">
             <div class="card-header">
                 <h3 class="card-title">Modifique los Datos del formulario</h3> {{-- Encabezado del formulario --}}
             </div>
@@ -39,14 +39,11 @@
                         </div>
                     </div>
                     <hr>
+
                     {{-- Botones de acción (Actualizar y Cancelar) --}}
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <a href="{{ url('/admin/roles') }}" class="btn btn-secondary">Cancelar</a>
-                                <button type="submit" class="btn btn-primary">Actualizar</button>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <a href="{{ url('/admin/roles') }}" class="btn btn-secondary">CANCELAR</a>
+                        <button type="submit" class="btn btn-success">GUARDAR CAMBIOS</button>
                     </div>
                 </form>
             </div>  

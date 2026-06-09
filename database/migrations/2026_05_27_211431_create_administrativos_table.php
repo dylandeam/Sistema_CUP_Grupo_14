@@ -9,15 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrativos', function (Blueprint $table) {
-            $table->id();
+            $table->string('codigo')->primary(); // Código como PK
 
             $table->unsignedBigInteger('usuario_id');
             $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->string('codigo')->unique(); // Código generado automáticamente
             $table->string('nombre');
             $table->string('apellido');
-            $table->string('ci')->unique(); // CI único
+            $table->string('ci')->unique();
             $table->date('fecha_nacimiento');
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
@@ -33,3 +32,4 @@ return new class extends Migration
         Schema::dropIfExists('administrativos');
     }
 };
+

@@ -21,6 +21,6 @@ class Materia extends Model
     // Relación muchos a muchos con docentes
     public function docentes()
     {
-        return $this->belongsToMany(Docente::class, 'docente_materia', 'materia_id', 'docente_id');
+        return $this->belongsToMany(Docente::class, 'docente_materia', 'materia_id', 'codigo_docente', 'id', 'codigo');
     }
 }

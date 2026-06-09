@@ -38,9 +38,6 @@
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
 
-                                             {{-- Botón Show (ver detalles) --}}
-                                            <a href="{{ url('/admin/materias/'.$materia->id) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-
                                             {{-- Botón Editar --}}
                                             <a href="{{ url('/admin/materias/'.$materia->id.'/edit') }}" class="btn btn-success btn-sm">
                                                 <i class="fas fa-edit"></i>

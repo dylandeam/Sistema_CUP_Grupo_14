@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
 
             // Relación con docentes
-            $table->unsignedBigInteger('docente_id');
-            $table->foreign('docente_id')->references('id')->on('docentes')->onDelete('cascade');
+            $table->string('codigo_docente');
+            $table->foreign('codigo_docente')->references('codigo')->on('docentes')->onDelete('cascade');
 
             // Relación con materias
             $table->unsignedBigInteger('materia_id');

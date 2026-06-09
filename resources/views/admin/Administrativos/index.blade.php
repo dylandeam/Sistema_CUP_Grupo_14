@@ -15,6 +15,11 @@
                 <div class="card-header">
                     <h3 class="card-title">Administrativos Registrados</h3>
                     <div class="card-tools">
+
+                        {{-- Botón para importar administrativos desde Excel/CSV --}}
+                        <a href="{{ url('admin/administrativos/import/form') }}" class="btn btn-success">Importar Excel/CSV</a>
+
+                        {{-- Botón para crear nuevo administrativo --}}
                         <a href="{{ url('admin/administrativos/create') }}" class="btn btn-primary">Nuevo Administrativo</a>
                     </div>
                 </div>
@@ -28,11 +33,11 @@
                                 <th style="text-align: center">Apellido</th>
                                 <th style="text-align: center">CI</th>
                                 <th style="text-align: center">Fecha Nacimiento</th>
-                                <th style="text-align: center">Email</th>
+                                <th style="text-align: center; width:140px;">Email</th>
                                 <th style="text-align: center">Teléfono</th>
                                 <th style="text-align: center">Dirección</th>
                                 <th style="text-align: center">Cargo</th>
-                                <th style="text-align: center">Acción</th>
+                                <th style="text-align: center; white-space:nowrap;">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -45,18 +50,26 @@
                                     <td style="text-align: center">{{ $administrativo->apellido }}</td>
                                     <td style="text-align: center">{{ $administrativo->ci }}</td>
                                     <td style="text-align: center">{{ $administrativo->fecha_nacimiento }}</td>
-                                    <td style="text-align: center">{{ $administrativo->user->email }}</td>
+                                    <td style="text-align: center; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        {{ $administrativo->user->email }}
+                                    </td>
                                     <td style="text-align: center">{{ $administrativo->telefono }}</td>
                                     <td style="text-align: center">{{ $administrativo->direccion }}</td> 
                                     <td style="text-align: center">{{ $administrativo->cargo }}</td>
-                                    <td style="text-align: center">
+                                    <td style="text-align: center; white-space:nowrap;">
                                         <div class="btn-group" role="group">
-                                            <a href="{{ url('/admin/administrativos/'.$administrativo->id) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                                            <a href="{{ url('/admin/administrativos/'.$administrativo->id.'/edit') }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i></a>
-                                            <form action="{{ url('/admin/administrativos/'.$administrativo->id) }}" method="POST" id="miformulario{{ $administrativo->id }}" style="display:inline;">
+
+                                            {{--Boton de show --}}
+                                            <a href="{{ route('admin.administrativos.show', $administrativo->codigo) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                            
+                                            {{--Boton de edit --}}
+                                            <a href="{{ route('admin.administrativos.edit', $administrativo->codigo) }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i></a>
+                                            
+                                            {{--Boton de eliminar --}}
+                                            <form action="{{ route('admin.administrativos.destroy', $administrativo->codigo) }}" method="POST" id="miformulario{{ $administrativo->codigo }}" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" onclick="confirmarEliminacion(event, {{ $administrativo->id }})" class="btn btn-danger btn-sm">
+                                                <button type="submit" onclick="confirmarEliminacion(event, '{{ $administrativo->codigo }}')" class="btn btn-danger btn-sm">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -68,12 +81,10 @@
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
+        </div></div>
 @stop
 
 @section('css')
-
     <!-- CSS de DataTables Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap4.min.css">
 
@@ -99,7 +110,6 @@
 @stop
 
 @section('js')
-    
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -114,7 +124,6 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
 
     <script>
-        // Script único para confirmación de eliminación
         function confirmarEliminacion(event, id) {
             event.preventDefault();
             Swal.fire({
@@ -132,7 +141,6 @@
             });
         }
 
-        // Configuración de DataTables
         $(function () {
             $("#example1").DataTable({
                 "pageLength": 5,

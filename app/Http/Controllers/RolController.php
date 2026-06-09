@@ -115,6 +115,38 @@ class RolController extends Controller
                 return 'Cambiar Contraseña';
             }
 
+            if (str_contains($name, 'turnos')) {
+                return 'Turnos';
+            }
+
+            if (str_contains($name, 'modalidades')) {
+                return 'Modalidades';
+            }
+
+            if (str_contains($name, 'postulantes')) {
+                return 'Postulantes';
+            }
+
+            if (str_contains($name, 'inscripciones')) {
+                return 'Inscripciones';
+            }
+
+            if (str_contains($name, 'pagos')) {
+                return 'Pagos';
+            }
+
+            if (str_contains($name, 'grupos')) {
+                return 'Grupos';
+            }
+
+            if (str_contains($name, 'carga_horaria')) {
+                return 'Carga Horaria';
+            }
+
+            if (str_contains($name, 'examenes')) {
+                return 'Exámenes';
+            }
+
             return 'Otros';
 
         });

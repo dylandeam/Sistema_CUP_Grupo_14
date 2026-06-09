@@ -23,6 +23,7 @@
                         <thead>
                             <tr>
                                 <th style="text-align: center">Nro</th>        
+                                <th style="text-align: center">Turno</th>        
                                 <th style="text-align: center">Hora Inicio</th>   
                                 <th style="text-align: center">Hora Fin</th>        
                                 <th style="text-align: center">Acción</th>
@@ -33,15 +34,15 @@
                             @foreach($horarios as $horario)
                                 <tr>
                                     <td style="text-align: center">{{ $contador++ }}</td>
+                                    <td style="text-align: center">{{ $horario->turno->nombre ?? 'Sin turno' }}</td>
                                     <td style="text-align: center">{{ $horario->hora_inicio }}</td>
                                     <td style="text-align: center">{{ $horario->hora_fin }}</td>
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
-                                            {{-- Botón Show --}}
-                                            <a href="{{ url('/admin/horarios/'.$horario->id) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                                            {{-- Botón Editar --}}
+                                            {{-- Botón de Editar--}}
                                             <a href="{{ url('/admin/horarios/'.$horario->id.'/edit') }}" class="btn btn-success btn-sm"><i class="fas fa-edit"></i></a>
-                                            {{-- Botón Eliminar --}}
+
+                                            {{-- Botón de Eliminar--}}
                                             <form action="{{ url('/admin/horarios/'.$horario->id) }}" method="POST" id="miformulario{{ $horario->id }}" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')

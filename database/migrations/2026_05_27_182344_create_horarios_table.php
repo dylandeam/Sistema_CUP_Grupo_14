@@ -13,13 +13,21 @@ return new class extends Migration
     {
         Schema::create('horarios', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('turno_id');
 
+            // Campos básicos
             $table->time('hora_inicio');
             $table->time('hora_fin');
 
             $table->timestamps();
 
-            $table->unique(['hora_inicio', 'hora_fin']);
+            $table->unique(['turno_id', 'hora_inicio', 'hora_fin']);
+            // asegura que no se repitan horarios iguales por turno
+
+            $table->foreign('turno_id')
+                  ->references('id')
+                  ->on('turnos')
+                  ->cascadeOnDelete();
         });
     }
 

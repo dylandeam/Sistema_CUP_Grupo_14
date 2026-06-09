@@ -301,7 +301,7 @@ return [
 
     
     'menu' => [
-        // PAQUETE 1: Seguridad y Acceso
+        // PAQUETE 1: Autenticación y Control de Acceso
         [
             'text'    => 'Autenticación y Control de Acceso',
             'icon'    => 'fas fa-fw fa-shield-alt',
@@ -317,6 +317,13 @@ return [
                 ],
 
                 [
+                    'text'    => 'Gestionar Cuentas Masivas',
+                    'url'     => 'admin/cuentas-masivas',
+                    'icon' => 'fas fa-clipboard-list',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [
                     'text'    => 'Bitácora',
                     'url'     => 'admin/bitacora',
                     'icon' => 'fas fa-clipboard-list',
@@ -327,7 +334,7 @@ return [
             ],
         ],
 
-        // PAQUETE 1: Control de Usuarios
+        // PAQUETE 2: Gestión del Personal y Usuarios
         [
             'text'    => 'Gestión del Personal y Usuarios',
             'icon' => 'fas fa-users',
@@ -339,9 +346,7 @@ return [
                     'icon'    => 'fas fa-fw fa-users',
                     'classes' => 'bg-blue text-white',
                 ],
-        
-
-                
+               
                 [
                     'text'    => 'Docentes',
                     'icon'    => 'fas fa-fw fa-chalkboard-teacher',
@@ -363,26 +368,53 @@ return [
                     ],
                 ],
 
+                [
+                    'text'    => 'Postulantes',
+                    'url'     => 'admin/postulantes',
+                    'icon'    => 'fas fa-fw fa-users',
+                    'classes' => 'bg-blue text-white',
+                ],
             ],
         ],
 
-        // PAQUETE 3: Gestion Academica
+        // PAQUETE 3: Administración Académica
         [
             'text'    => 'Administración Académica',
             'icon'    => 'fas fa-fw fa-graduation-cap',
             'classes' => 'bg-dark text-white',
             'submenu' => [
                 [
+                    'text'    => 'Modalidades',
+                    'url'     => 'admin/modalidades',
+                    'icon'    => 'fas fa-fw fa-cogs',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [
+                    'text'    => 'Grupos',
+                    'icon'    => 'fas fa-users',
+                    'classes' => 'bg-blue text-white',
+                    'submenu' => [
+                        [
+                            'text' => 'Listado de Grupos',
+                            'url'  => 'admin/grupos',
+                            'icon' => 'fas fa-fw fa-list',
+                            'classes' => 'bg-light text-dark',
+                        ],
+
+                        [
+                            'text' => 'Horarios de Grupos',
+                            'url'  => 'admin/grupos/horariosgrupos',
+                            'icon' => 'fas fa-fw fa-clock',
+                            'classes' => 'bg-light text-dark',
+                        ],
+                    ],
+                ],
+
+                [
                     'text'    => 'Gestiones',
                     'url'     => 'admin/gestiones',
                     'icon'    => 'fas fa-fw fa-tasks',
-                    'classes' => 'bg-blue text-white',
-                ],
-                
-                [ 
-                    'text'    => 'Carreras',
-                    'url'     => 'admin/carreras',
-                    'icon'    => 'fas fa-fw fa-graduation-cap',
                     'classes' => 'bg-blue text-white',
                 ],
 
@@ -394,6 +426,20 @@ return [
                 ],
 
                 [ 
+                    'text'    => 'Horario',
+                    'url'     => 'admin/horarios',
+                    'icon'    => 'fas fa-clock',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [ 
+                    'text'    => 'Turnos',
+                    'url'     => 'admin/turnos',
+                    'icon'    => 'fas fa-clock',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [ 
                     'text'    => 'Aulas',
                     'url'     => 'admin/aulas',
                     'icon'    => 'fas fa-fw fa-university',
@@ -401,9 +447,88 @@ return [
                 ],
 
                 [ 
-                    'text'    => 'Horario',
-                    'url'     => 'admin/horarios',
-                    'icon'    => 'fas fa-clock',
+                    'text'    => 'Carga Horaria',
+                    'url'     => 'admin/carga_horaria',
+                    'icon'    => 'fas fa-fw fa-clock',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [ 
+                    'text'    => 'Carreras',
+                    'url'     => 'admin/carreras',
+                    'icon'    => 'fas fa-fw fa-graduation-cap',
+                    'classes' => 'bg-blue text-white',
+                ],
+                
+            ],
+        ],
+
+        // PAQUETE 4: Procesos Académicos y Administrativos
+        [
+            'text'    => 'Procesos Académicos y Administrativos',
+            'icon'    => 'fas fa-fw fa-graduation-cap',
+            'classes' => 'bg-dark text-white',
+            'submenu' => [
+                [
+                    'text'    => 'Inscripción',
+                    'icon'    => 'fas fa-fw fa-chalkboard-teacher',
+                    'classes' => 'bg-blue text-white',
+                    'submenu' => [
+                        [
+                            'text' => 'Inscripción de Postulantes',
+                            'url'  => 'admin/inscripciones',
+                            'icon' => 'fas fa-fw fa-user-plus',
+                            'classes' => 'bg-light text-dark',
+                        ],
+
+                        [
+                            'text' => 'Boleta de Inscripción',
+                            'url'  => 'admin/inscripciones/boleta',
+                            'icon' => 'fas fa-fw fa-file-invoice',
+                            'classes' => 'bg-light text-dark',
+                        ],
+                    ],
+                ],
+
+                [
+                    'text'    => 'Examen',
+                    'icon'    => 'fas fa-fw fa-clipboard-list',
+                    'classes' => 'bg-blue text-white',
+                    'submenu' => [
+                        [
+                            'text' => 'Examen de Admisión',
+                            'url'  => 'admin/examenes',
+                            'icon' => 'fas fa-fw fa-clipboard-list',
+                            'classes' => 'bg-light text-dark',
+                        ],
+
+                        [
+                            'text' => 'Registrar Notas de Examen',
+                            'url'  => 'admin/notas_examen/create',
+                            'icon' => 'fas fa-fw fa-clock',
+                            'classes' => 'bg-light text-dark',
+                        ],
+                    ],
+                ],
+
+                [
+                    'text'    => 'Pagos',
+                    'url'     => 'admin/pagos',
+                    'icon'    => 'fas fa-fw fa-money-bill-wave',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [
+                    'text'    => 'Historial Academico',
+                    'url'     => 'admin/historial-academico',
+                    'icon'    => 'fas fa-fw fa-history',
+                    'classes' => 'bg-blue text-white',
+                ],
+                
+                [
+                    'text'    => 'Reportes',
+                    'url'     => 'admin/reportes',
+                    'icon'    => 'fas fa-fw fa-chart-bar',
                     'classes' => 'bg-blue text-white',
                 ],
             ],
