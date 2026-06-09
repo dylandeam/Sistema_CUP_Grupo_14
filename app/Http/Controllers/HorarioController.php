@@ -75,14 +75,6 @@ class HorarioController extends Controller
             ->with('icono', 'success');
     }
 
-    /**
-     * Mostrar un horario específico.
-     */
-    public function show(Horario $horario)
-    {
-        $horario->load('turno');
-        return view('admin.horarios.show', compact('horario'));
-    }
 
     /**
      * Mostrar formulario de edición.
