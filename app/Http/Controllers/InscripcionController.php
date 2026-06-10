@@ -50,10 +50,11 @@ class InscripcionController extends Controller
         return view('admin.inscripciones.create', compact('postulantes', 'gestions', 'modalidades', 'carreras', 'turnos', 'costo_inscripcion'));
     }
 
+    /*
     public function showImportForm()
     {
         return view('admin.postulantes.import');
-    }
+    } */
 
     /**
      * Store a newly created resource in storage.

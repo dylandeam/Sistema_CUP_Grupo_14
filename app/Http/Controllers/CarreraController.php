@@ -52,14 +52,6 @@ class CarreraController extends Controller
 
 
     /**
-     * Mostrar una carrera específica.
-     */
-    public function show(Carrera $carrera)
-    {
-        return view('admin.carreras.show', compact('carrera'));
-    }
-
-    /**
      * Mostrar formulario de edición.
      */
     public function edit($id)

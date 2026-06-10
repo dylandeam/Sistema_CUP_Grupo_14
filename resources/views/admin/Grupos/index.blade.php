@@ -11,13 +11,16 @@
 @section('content')
     <div class="row">
         <div class="col-md-12">
-            <div class="card card-outline card-primary">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Grupos Registrados</h3>
-                    <a href="{{ route('admin.grupos.horariosgrupos') }}" class="btn btn-info btn-sm">
-                        <i class="fas fa-clock"></i> Ver Horarios de Grupos
-                    </a>
+            <div class="card card-outline card-primary">             
+                <div class="card-header">
+                    <h3 class="card-title">Grupos Registradas</h3>
+                    <div class="card-tools">
+
+                        {{-- Botón para ver horarios de grupos --}}
+                        <a href="{{ route('admin.grupos.horariosgrupos') }}" class="btn btn-primary">Ver Horarios de Grupos</a>
+                    </div>
                 </div>
+
                 <div class="card-body">
                     @if(!empty($activeGestionMessage))
                         <div class="alert alert-danger">
