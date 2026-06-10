@@ -30,7 +30,7 @@
         </div>
     @endif
 
-    @if($gestionActiva && isset($docente) && count($materias) > 0 && count($grupos) > 0)
+    @if($gestionActiva && isset($docente) && count($cargasHorarias) > 0)
         <div class="col-md-12">
             <div class="card card-outline card-primary">
                 <div class="card-header bg-primary">
@@ -54,32 +54,26 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="materia_id">Materia <span style="color: red;">*</span></label>
-                                    <select id="materia_id" name="materia_id" class="form-control" required>
-                                        <option value="">-- Seleccione una materia --</option>
-                                        @foreach($materias as $materia)
-                                            <option value="{{ $materia->id }}">{{ $materia->nombre }}</option>
+                                    <label for="materia_grupo_id">Materia - Grupo <span style="color: red;">*</span></label>
+                                    <select id="materia_grupo_id" name="materia_grupo_id" class="form-control" required>
+                                        <option value="">-- Seleccione una materia y grupo --</option>
+                                        @foreach($cargasHorarias as $carga)
+                                            <option value="{{ $carga->id }}" 
+                                                    data-materia-id="{{ $carga->materia->id }}" 
+                                                    data-grupo-id="{{ $carga->grupo->id }}">
+                                                {{ $carga->materia->nombre }} - {{ $carga->grupo->nombre }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="grupo_id">Grupo <span style="color: red;">*</span></label>
-                                    <select id="grupo_id" name="grupo_id" class="form-control" required>
-                                        <option value="">-- Seleccione un grupo --</option>
-                                        @foreach($grupos as $grupo)
-                                            <option value="{{ $grupo->id }}">{{ $grupo->nombre }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label>&nbsp;</label>
+                                    <button type="button" id="btnCargar" class="btn btn-primary btn-block" onclick="cargarInscritos()">
+                                        <i class="fas fa-sync-alt mr-2"></i>Cargar Inscritos
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button type="button" id="btnCargar" class="btn btn-primary" onclick="cargarInscritos()">
-                                    <i class="fas fa-sync-alt mr-2"></i>Cargar Postulantes
-                                </button>
                             </div>
                         </div>
                     </form>
@@ -130,11 +124,11 @@
                 </div>
             </div>
         </div>
-    @elseif($gestionActiva && isset($docente) && (count($materias) == 0 || count($grupos) == 0))
+    @elseif($gestionActiva && isset($docente) && count($cargasHorarias) == 0)
         <div class="col-md-12">
             <div class="alert alert-warning">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>Información:</strong> No tiene materias y/o grupos asignados en la gestión activa.
+                <strong>Información:</strong> No tiene materias asignadas en la gestión activa.
             </div>
         </div>
     @endif
@@ -146,15 +140,25 @@
 <script>
 function cargarInscritos() {
     const examenId = document.getElementById('examen_id').value;
-    const materiaId = document.getElementById('materia_id').value;
-    const grupoId = document.getElementById('grupo_id').value;
+    const materiaGrupoId = document.getElementById('materia_grupo_id').value;
 
-    if (!examenId || !materiaId || !grupoId) {
-        alert('Por favor seleccione examen, materia y grupo');
+    if (!examenId || !materiaGrupoId) {
+        alert('Por favor seleccione examen y materia-grupo');
         return;
     }
 
+    const select = document.getElementById('materia_grupo_id');
+    const selectedOption = select.options[select.selectedIndex];
+    const materiaId = selectedOption.getAttribute('data-materia-id');
+    const grupoId = selectedOption.getAttribute('data-grupo-id');
+
     console.log('Parámetros:', { examenId, materiaId, grupoId });
+
+    if (!materiaId || !grupoId) {
+        alert('Error: No se pudieron obtener los datos de la materia y grupo');
+        console.error('Datos no encontrados - materiaId:', materiaId, 'grupoId:', grupoId);
+        return;
+    }
 
     // Mostrar spinner de carga
     document.getElementById('btnCargar').disabled = true;
@@ -181,9 +185,9 @@ function cargarInscritos() {
         if (data.error) {
             alert('Error: ' + data.error);
         } else if (!data.inscritos || data.inscritos.length === 0) {
-            alert('No se encontraron postulantes para esta selección');
+            alert('No se encontraron inscritos para esta selección');
         } else {
-            llenarTablaNotas(data.inscritos);
+            llenarTablaNotas(data.inscritos, materiaId);
             document.getElementById('examen_id_form').value = examenId;
             document.getElementById('materia_id_form').value = materiaId;
             document.getElementById('grupo_id_form').value = grupoId;
@@ -192,15 +196,15 @@ function cargarInscritos() {
     })
     .catch(error => {
         console.error('Error completo:', error);
-        alert('Error al cargar postulantes: ' + error.message);
+        alert('Error al cargar inscritos: ' + error.message);
     })
     .finally(() => {
         document.getElementById('btnCargar').disabled = false;
-        document.getElementById('btnCargar').innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Cargar Postulantes';
+        document.getElementById('btnCargar').innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Cargar Inscritos';
     });
 }
 
-function llenarTablaNotas(inscritos) {
+function llenarTablaNotas(inscritos, materiaId) {
     const tbody = document.getElementById('tbodyNotas');
     tbody.innerHTML = '';
 
@@ -249,14 +253,12 @@ function calcularNotaPonderada(input) {
     inputPonderada.value = notaPonderada;
 }
 
-// Permitir Enter para cargar inscritos
-['examen_id', 'materia_id', 'grupo_id'].forEach(id => {
-    document.getElementById(id)?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            cargarInscritos();
-        }
-    });
+// Permitir Enter en el select para cargar inscritos
+document.getElementById('materia_grupo_id')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        cargarInscritos();
+    }
 });
 </script>
 @stop

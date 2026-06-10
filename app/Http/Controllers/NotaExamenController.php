@@ -25,8 +25,7 @@ class NotaExamenController extends Controller
             return view('admin.notas_examen.create', [
                 'gestionActiva' => null,
                 'examenes' => collect(),
-                'materias' => collect(),
-                'grupos' => collect(),
+                'cargasHorarias' => collect(),
                 'mensaje' => 'No hay gestiones activas. No se pueden registrar notas hasta que exista una gestión activa.'
             ]);
         }
@@ -39,9 +38,8 @@ class NotaExamenController extends Controller
             return view('admin.notas_examen.create', [
                 'gestionActiva' => $gestionActiva,
                 'examenes' => collect(),
-                'materias' => collect(),
-                'grupos' => collect(),
-                'mensaje' => 'No se encontró información del docente. El usuario debe estar registrado como docente para registrar notas.'
+                'cargasHorarias' => collect(),
+                'mensaje' => 'No se encontró información del docente en el sistema.'
             ]);
         }
 
@@ -53,16 +51,10 @@ class NotaExamenController extends Controller
         // Obtener las cargas horarias que enseña el docente en esta gestión
         $cargasHorarias = CargaHoraria::where('docente_codigo', $docente->codigo)
             ->where('gestion_id', $gestionActiva->id)
-            ->with(['materia', 'grupo'])
+            ->with(['materia', 'grupo', 'grupo.turno', 'grupo.modalidad'])
             ->get();
 
-        // Obtener materias únicas para este docente
-        $materias = $cargasHorarias->pluck('materia')->unique('id');
-
-        // Obtener grupos únicos para este docente
-        $grupos = $cargasHorarias->pluck('grupo')->unique('id');
-
-        return view('admin.notas_examen.create', compact('gestionActiva', 'docente', 'examenes', 'materias', 'grupos', 'cargasHorarias'));
+        return view('admin.notas_examen.create', compact('gestionActiva', 'docente', 'examenes', 'cargasHorarias'));
     }
 
     /**
@@ -79,25 +71,6 @@ class NotaExamenController extends Controller
 
         if (!$gestionActiva) {
             return response()->json(['error' => 'No hay gestión activa'], 400);
-        }
-
-        // Obtener el docente autenticado
-        $usuario = auth()->user();
-        $docente = $usuario->docente ?? null;
-
-        if (!$docente) {
-            return response()->json(['error' => 'Usuario no registrado como docente'], 403);
-        }
-
-        // Validar que el docente tiene carga horaria para esta combinación
-        $cargaValida = CargaHoraria::where('docente_codigo', $docente->codigo)
-            ->where('gestion_id', $gestionActiva->id)
-            ->where('materia_id', $materiaId)
-            ->where('grupo_id', $grupoId)
-            ->first();
-
-        if (!$cargaValida) {
-            return response()->json(['error' => 'No tiene asignada esta combinación de materia y grupo'], 403);
         }
 
         // Obtener el grupo
@@ -148,38 +121,6 @@ class NotaExamenController extends Controller
             'notas.*.id_inscripcion' => 'required|exists:inscripcions,id',
             'notas.*.nota_materia' => 'nullable|numeric|min:0|max:100',
         ]);
-
-        // Obtener el docente autenticado
-        $usuario = auth()->user();
-        $docente = $usuario->docente ?? null;
-
-        if (!$docente) {
-            return redirect()->route('admin.notas_examen.create')
-                ->with('mensaje', 'Error: Usuario no registrado como docente.')
-                ->with('icono', 'error');
-        }
-
-        // Obtener gestión activa
-        $gestionActiva = Gestion::where('estado', 'Activa')->first();
-
-        if (!$gestionActiva) {
-            return redirect()->route('admin.notas_examen.create')
-                ->with('mensaje', 'No hay gestión activa.')
-                ->with('icono', 'error');
-        }
-
-        // Validar que el docente tiene carga horaria para esta combinación
-        $cargaValida = CargaHoraria::where('docente_codigo', $docente->codigo)
-            ->where('gestion_id', $gestionActiva->id)
-            ->where('materia_id', $validated['materia_id'])
-            ->where('grupo_id', $validated['grupo_id'])
-            ->first();
-
-        if (!$cargaValida) {
-            return redirect()->route('admin.notas_examen.create')
-                ->with('mensaje', 'No tiene asignada esta combinación de materia y grupo.')
-                ->with('icono', 'error');
-        }
 
         $materia = Materia::find($validated['materia_id']);
 
