@@ -182,7 +182,7 @@ class RolController extends Controller
     {
         $request->validate([
             'permisos' => 'array',
-            'permisos.*' => 'integer|exists:permissions,id',
+            'permisos.*' => 'string|exists:permissions,name',
         ]);
 
         $rol = Role::findOrFail($id);

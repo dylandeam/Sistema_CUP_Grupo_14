@@ -175,8 +175,7 @@ class AdministrativoController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,csv,txt|max:2048',
         ]);
-        $path = $request->file('file')->getRealPath();
-        $data = Excel::toArray([], $path)[0]; // primera hoja
+        $data = Excel::toArray([], $request->file('file'))[0]; // primera hoja
         
         $errores = [];
         $filasValidas = [];

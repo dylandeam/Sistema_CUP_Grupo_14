@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 
 @section('content_header')
-    <h1><b>CU24 · Generar Reportes</b></h1>
+    <h1><b>Reportes</b></h1>
     <hr>
 @stop
 
@@ -109,7 +109,18 @@
                                                         <td>
                                                             @php
                                                                 $fieldConfig = $availableFields[$field] ?? null;
-                                                                if (is_array($fieldConfig) && isset($fieldConfig['relation'])) {
+                                                                
+                                                                // Manejar campos personalizados (custom)
+                                                                if (is_array($fieldConfig) && isset($fieldConfig['custom'])) {
+                                                                    if ($fieldConfig['custom'] === 'materias_list') {
+                                                                        $materias = $result->materias()->pluck('nombre')->toArray();
+                                                                        $value = !empty($materias) ? implode(', ', $materias) : '-';
+                                                                    } else {
+                                                                        $value = '-';
+                                                                    }
+                                                                }
+                                                                // Manejar relaciones
+                                                                elseif (is_array($fieldConfig) && isset($fieldConfig['relation'])) {
                                                                     $value = $result->{$fieldConfig['relation']}->{$fieldConfig['field']} ?? '-';
                                                                 } else {
                                                                     $value = $result->$field ?? '-';
@@ -161,6 +172,37 @@
                             <b>Selecciona al menos un campo y presiona Buscar para ver resultados.</b>
                         </div>
                     @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTES ESPECIALIZADOS -->
+        <div class="col-md-12 mt-4">
+            <div class="card card-outline card-success">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Reportes Especializados</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Carga Horaria -->
+                        <div class="col-md-6">
+                            <a href="{{ route('admin.reportes.carga_horaria') }}" class="btn btn-outline-success btn-block mb-2">
+                                <i class="fas fa-calendar-week"></i> Carga Horaria de Docentes
+                            </a>
+                            <small class="text-muted d-block mb-3">
+                                Ver horarios de docentes con vista diaria, semanal y general.
+                            </small>
+                        </div>
+                        <!-- Futuro: otros reportes especializados -->
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-secondary btn-block mb-2" disabled>
+                                <i class="fas fa-chart-bar"></i> Más Reportes Próximamente
+                            </button>
+                            <small class="text-muted d-block mb-3">
+                                Más opciones de reportes especializados en desarrollo.
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

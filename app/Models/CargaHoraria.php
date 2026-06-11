@@ -50,4 +50,14 @@ class CargaHoraria extends Model
     {
         return $this->belongsTo(Gestion::class, 'gestion_id');
     }
+
+    /**
+     * Scope para filtrar por gestiones activas
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereHas('gestion', function ($q) {
+            $q->where('estado', 'Activa');
+        });
+    }
 }

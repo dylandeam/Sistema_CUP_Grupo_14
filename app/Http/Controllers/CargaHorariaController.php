@@ -133,12 +133,12 @@ class CargaHorariaController extends Controller
             ->pluck('grupos', 'docente_codigo')
             ->toArray();
 
-        DB::transaction(function () use ($grupos, $materias, $horariosPorTurno, &$docenteContador) {
+        DB::transaction(function () use ($grupos, $materias, $horariosPorTurno, &$docenteContador, $gestionActiva) {
             foreach ($grupos as $grupo) {
                 $asignadosEnGrupo = [];
-                $horario = $horariosPorTurno->get($grupo->id_turno)?->first() ?? Horario::first();
+                $horariosDelTurno = $horariosPorTurno->get($grupo->id_turno) ?? collect();
 
-                if (!$horario) {
+                if ($horariosDelTurno->isEmpty()) {
                     continue;
                 }
 
@@ -148,11 +148,32 @@ class CargaHorariaController extends Controller
                         continue 2;
                     }
 
+                    // Buscar un horario disponible sin choque
+                    $horarioAsignado = null;
+                    foreach ($horariosDelTurno as $horario) {
+                        $validacion = CargaHorariaReporteController::validarChoqueHorario(
+                            $docente->codigo,
+                            $horario->id,
+                            $grupo->id,
+                            $grupo->id_gestion
+                        );
+
+                        if (!$validacion['existe']) {
+                            $horarioAsignado = $horario;
+                            break;
+                        }
+                    }
+
+                    // Si no hay horario disponible sin choque, usar el primero
+                    if (!$horarioAsignado) {
+                        $horarioAsignado = $horariosDelTurno->first();
+                    }
+
                     CargaHoraria::create([
                         'docente_codigo' => $docente->codigo,
                         'materia_id'     => $materia->id,
                         'grupo_id'       => $grupo->id,
-                        'horario_id'     => $horario->id,
+                        'horario_id'     => $horarioAsignado->id,
                         'aula_id'        => $grupo->id_aula,
                         'gestion_id'     => $grupo->id_gestion,
                     ]);

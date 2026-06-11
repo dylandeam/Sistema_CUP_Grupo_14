@@ -339,8 +339,7 @@ class DocenteController extends Controller
         'file' => 'required|mimes:xlsx,csv,txt|max:2048',
     ]);
 
-    $path = $request->file('file')->getRealPath();
-    $sheets = Excel::toArray([], $path);
+    $sheets = Excel::toArray([], $request->file('file'));
 
     if (empty($sheets) || empty($sheets[0])) {
         return back()->with('mensaje', '❌ El archivo está vacío o no contiene datos válidos.')->with('icono', 'danger');

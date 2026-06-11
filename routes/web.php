@@ -31,6 +31,7 @@ use App\Http\Controllers\PostulanteGrupoController;
 use App\Http\Controllers\PromedioExamenController;
 use App\Http\Controllers\ResultadoController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\CargaHorariaReporteController;
 
 
 
@@ -257,3 +258,7 @@ Route::get('/admin/resultados-finales/debug/{inscripcionId}', [ResultadoControll
 // Rutas para Reportes
 Route::get('/admin/reportes', [ReporteController::class,'index'])->name('admin.reportes.index')->middleware('auth', 'can:admin.reportes.index');
 Route::post('/admin/reportes/export', [ReporteController::class,'export'])->name('admin.reportes.export')->middleware('auth', 'can:admin.reportes.export');
+
+// Rutas para Reportes de Carga Horaria
+Route::get('/admin/reportes/carga-horaria', [CargaHorariaReporteController::class,'index'])->name('admin.reportes.carga_horaria')->middleware('auth', 'can:admin.carga_horaria.index');
+Route::get('/admin/reportes/carga-horaria/exportar', [CargaHorariaReporteController::class,'exportarExcel'])->name('admin.reportes.carga_horaria.exportar')->middleware('auth', 'can:admin.carga_horaria.index');

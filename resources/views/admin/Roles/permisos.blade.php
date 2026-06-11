@@ -28,7 +28,7 @@
                                         <input type="checkbox" 
                                                class="form-check-input" 
                                                name="permisos[]" 
-                                               value="{{ $permiso->id }}" 
+                                               value="{{ $permiso->name }}" 
                                                {{ $rol->hasPermissionTo($permiso->name) ? 'checked' : '' }}>
                                         <label class="form-check-label">
                                             {{ $permiso->name }}
