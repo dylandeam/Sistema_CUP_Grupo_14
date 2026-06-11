@@ -194,6 +194,7 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.asistencias.edit', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
         Permission::firstOrCreate(['name' => 'admin.asistencias.update', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
         Permission::firstOrCreate(['name' => 'admin.asistencias.destroy', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.postulantes', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
 
         // Permisos para Postulantes en Grupos
         Permission::firstOrCreate(['name' => 'admin.postulante_grupos.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);

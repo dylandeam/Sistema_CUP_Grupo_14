@@ -65,59 +65,81 @@ class NotaExamenController extends Controller
      */
     public function getInscritosPorGrupo(Request $request)
     {
-        $grupoId = $request->input('grupo_id');
-        $materiaId = $request->input('materia_id');
-        $examenId = $request->input('examen_id');
+        try {
+            $grupoId = $request->input('grupo_id');
+            $materiaId = $request->input('materia_id');
+            $examenId = $request->input('examen_id');
 
-        // Obtener gestión activa
-        $gestionActiva = Gestion::where('estado', 'Activa')->first();
+            // Validar parámetros
+            if (!$grupoId || !$materiaId || !$examenId) {
+                return response()->json(['error' => 'Parámetros incompletos requeridos'], 400);
+            }
 
-        if (!$gestionActiva) {
-            return response()->json(['error' => 'No hay gestión activa'], 400);
-        }
+            // Obtener gestión activa
+            $gestionActiva = Gestion::where('estado', 'Activa')->first();
 
-        // Obtener el grupo
-        $grupo = \App\Models\Grupo::find($grupoId);
-        if (!$grupo) {
-            return response()->json(['error' => 'Grupo no encontrado'], 404);
-        }
+            if (!$gestionActiva) {
+                return response()->json(['error' => 'No hay gestión activa'], 400);
+            }
 
-        // Obtener inscritos del grupo
-        // Primero intentar por grupo_id (nuevos inscritos después de migración)
-        $inscritos = Inscripcion::where('grupo_id', $grupo->id)
-            ->with('postulante')
-            ->orderBy('postulante_codigo')
-            ->get();
+            // Obtener el grupo
+            $grupo = \App\Models\Grupo::find($grupoId);
+            if (!$grupo) {
+                return response()->json(['error' => 'Grupo no encontrado'], 404);
+            }
 
-        // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
-        if ($inscritos->isEmpty()) {
-            $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
-                ->where('modalidad_id', $grupo->id_modalidad)
-                ->where('turno_id', $grupo->id_turno)
+            // Obtener inscritos del grupo
+            // Primero intentar por grupo_id (nuevos inscritos después de migración)
+            $inscritos = Inscripcion::where('grupo_id', $grupo->id)
                 ->with('postulante')
                 ->orderBy('postulante_codigo')
                 ->get();
+
+            // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
+            if ($inscritos->isEmpty()) {
+                $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
+                    ->where('modalidad_id', $grupo->id_modalidad)
+                    ->where('turno_id', $grupo->id_turno)
+                    ->with('postulante')
+                    ->orderBy('postulante_codigo')
+                    ->get();
+            }
+
+            if ($inscritos->isEmpty()) {
+                return response()->json(['inscritos' => []]);
+            }
+
+            $materia = Materia::find($materiaId);
+            if (!$materia) {
+                return response()->json(['error' => 'Materia no encontrada'], 404);
+            }
+
+            $datos = [];
+            foreach ($inscritos as $inscripcion) {
+                // Verificar que el postulante existe
+                if (!$inscripcion->postulante) {
+                    continue;
+                }
+
+                $notaExamen = NotaExamen::where('id_inscripcion', $inscripcion->id)
+                    ->where('id_examen', $examenId)
+                    ->where('id_materia', $materiaId)
+                    ->first();
+
+                $datos[] = [
+                    'id_inscripcion' => $inscripcion->id,
+                    'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellidos,
+                    'nota_materia' => $notaExamen->nota_materia ?? '',
+                    'nota_ponderada' => $notaExamen->nota_ponderada ?? '',
+                    'ponderacion' => $materia->ponderacion ?? 0,
+                ];
+            }
+
+            return response()->json(['inscritos' => $datos]);
+        } catch (\Exception $e) {
+            \Log::error('Error en NotaExamen getInscritosPorGrupo: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
         }
-
-        $materia = Materia::find($materiaId);
-
-        $datos = [];
-        foreach ($inscritos as $inscripcion) {
-            $notaExamen = NotaExamen::where('id_inscripcion', $inscripcion->id)
-                ->where('id_examen', $examenId)
-                ->where('id_materia', $materiaId)
-                ->first();
-
-            $datos[] = [
-                'id_inscripcion' => $inscripcion->id,
-                'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellidos,
-                'nota_materia' => $notaExamen->nota_materia ?? '',
-                'nota_ponderada' => $notaExamen->nota_ponderada ?? '',
-                'ponderacion' => $materia->ponderacion ?? 0,
-            ];
-        }
-
-        return response()->json(['inscritos' => $datos]);
     }
 
     /**

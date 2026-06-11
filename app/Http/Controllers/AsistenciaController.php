@@ -61,54 +61,73 @@ class AsistenciaController extends Controller
      */
     public function getInscritosPorGrupo(Request $request)
     {
-        $grupoId = $request->input('grupo_id');
-        
-        // Obtener gestión activa
-        $gestionActiva = Gestion::where('estado', 'Activa')->first();
+        try {
+            $grupoId = $request->input('grupo_id');
 
-        if (!$gestionActiva) {
-            return response()->json(['error' => 'No hay gestión activa'], 400);
-        }
+            // Validar parámetro
+            if (!$grupoId) {
+                return response()->json(['error' => 'Parámetro grupo_id requerido'], 400);
+            }
+            
+            // Obtener gestión activa
+            $gestionActiva = Gestion::where('estado', 'Activa')->first();
 
-        // Obtener el grupo
-        $grupo = \App\Models\Grupo::find($grupoId);
-        if (!$grupo) {
-            return response()->json(['error' => 'Grupo no encontrado'], 404);
-        }
+            if (!$gestionActiva) {
+                return response()->json(['error' => 'No hay gestión activa'], 400);
+            }
 
-        // Obtener inscritos del grupo
-        // Primero intentar por grupo_id (nuevos inscritos después de migración)
-        $inscritos = Inscripcion::where('grupo_id', $grupo->id)
-            ->with('postulante')
-            ->orderBy('postulante_codigo')
-            ->get();
+            // Obtener el grupo
+            $grupo = \App\Models\Grupo::find($grupoId);
+            if (!$grupo) {
+                return response()->json(['error' => 'Grupo no encontrado'], 404);
+            }
 
-        // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
-        if ($inscritos->isEmpty()) {
-            $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
-                ->where('modalidad_id', $grupo->id_modalidad)
-                ->where('turno_id', $grupo->id_turno)
+            // Obtener inscritos del grupo
+            // Primero intentar por grupo_id (nuevos inscritos después de migración)
+            $inscritos = Inscripcion::where('grupo_id', $grupo->id)
                 ->with('postulante')
                 ->orderBy('postulante_codigo')
                 ->get();
+
+            // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
+            if ($inscritos->isEmpty()) {
+                $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
+                    ->where('modalidad_id', $grupo->id_modalidad)
+                    ->where('turno_id', $grupo->id_turno)
+                    ->with('postulante')
+                    ->orderBy('postulante_codigo')
+                    ->get();
+            }
+
+            if ($inscritos->isEmpty()) {
+                return response()->json(['inscritos' => []]);
+            }
+
+            $datos = [];
+            foreach ($inscritos as $inscripcion) {
+                // Verificar que el postulante existe
+                if (!$inscripcion->postulante) {
+                    continue;
+                }
+
+                $asistencia = Asistencia::where('codigo_postulante', $inscripcion->postulante_codigo)
+                    ->where('id_grupo', $grupoId)
+                    ->where('fecha', '>=', $gestionActiva->created_at)
+                    ->latest('fecha')
+                    ->first();
+
+                $datos[] = [
+                    'codigo_postulante' => $inscripcion->postulante_codigo,
+                    'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellidos,
+                    'estado' => $asistencia->estado ?? 'Presente',
+                ];
+            }
+
+            return response()->json(['inscritos' => $datos]);
+        } catch (\Exception $e) {
+            \Log::error('Error en Asistencia getInscritosPorGrupo: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
         }
-
-        $datos = [];
-        foreach ($inscritos as $inscripcion) {
-            $asistencia = Asistencia::where('codigo_postulante', $inscripcion->postulante_codigo)
-                ->where('id_grupo', $grupoId)
-                ->where('fecha', '>=', $gestionActiva->created_at)
-                ->latest('fecha')
-                ->first();
-
-            $datos[] = [
-                'codigo_postulante' => $inscripcion->postulante_codigo,
-                'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellidos,
-                'estado' => $asistencia->estado ?? 'Presente',
-            ];
-        }
-
-        return response()->json(['inscritos' => $datos]);
     }
 
     /**
