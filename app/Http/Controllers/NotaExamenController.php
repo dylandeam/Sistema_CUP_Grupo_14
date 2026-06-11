@@ -74,6 +74,11 @@ class NotaExamenController extends Controller
 
             // Validar parámetros
             if (!$grupoId || !$materiaId || !$examenId) {
+                Log::warning('getInscritosPorGrupo: Parámetros incompletos', [
+                    'grupoId' => $grupoId,
+                    'materiaId' => $materiaId,
+                    'examenId' => $examenId
+                ]);
                 return response()->json(['error' => 'Parámetros incompletos requeridos'], 400);
             }
 
@@ -81,14 +86,23 @@ class NotaExamenController extends Controller
             $gestionActiva = Gestion::where('estado', 'Activa')->first();
 
             if (!$gestionActiva) {
+                Log::warning('getInscritosPorGrupo: No hay gestión activa');
                 return response()->json(['error' => 'No hay gestión activa'], 400);
             }
 
             // Obtener el grupo
             $grupo = Grupo::find($grupoId);
             if (!$grupo) {
+                Log::warning('getInscritosPorGrupo: Grupo no encontrado', ['grupoId' => $grupoId]);
                 return response()->json(['error' => 'Grupo no encontrado'], 404);
             }
+
+            Log::info('getInscritosPorGrupo: Buscando inscritos', [
+                'gestion_id' => $grupo->id_gestion,
+                'modalidad_id' => $grupo->id_modalidad,
+                'turno_id' => $grupo->id_turno,
+                'grupo' => $grupo
+            ]);
 
             // Obtener inscritos del grupo usando modalidad+turno+gestion
             $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
@@ -98,12 +112,18 @@ class NotaExamenController extends Controller
                 ->orderBy('postulante_codigo')
                 ->get();
 
+            Log::info('getInscritosPorGrupo: Inscritos encontrados', [
+                'cantidad' => $inscritos->count(),
+                'inscritos' => $inscritos->pluck('id')->toArray()
+            ]);
+
             if ($inscritos->isEmpty()) {
                 return response()->json(['inscritos' => []]);
             }
 
             $materia = Materia::find($materiaId);
             if (!$materia) {
+                Log::warning('getInscritosPorGrupo: Materia no encontrada', ['materiaId' => $materiaId]);
                 return response()->json(['error' => 'Materia no encontrada'], 404);
             }
 
@@ -128,9 +148,16 @@ class NotaExamenController extends Controller
                 ];
             }
 
+            Log::info('getInscritosPorGrupo: Datos retornados', ['cantidad' => count($datos)]);
+
             return response()->json(['inscritos' => $datos]);
         } catch (\Exception $e) {
-            Log::error('Error en NotaExamen getInscritosPorGrupo: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error en NotaExamen getInscritosPorGrupo: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
         }
     }
@@ -177,6 +204,84 @@ class NotaExamenController extends Controller
         return redirect()->route('admin.notas_examen.create')
             ->with('mensaje', "Se registraron {$contadorGuardados} notas exitosamente.")
             ->with('icono', 'success');
+    }
+
+    /**
+     * Generar notas aleatorias para todos los postulantes inscritos
+     * Rango de notas: 30 a 95
+     */
+    public function generarNotasAleatorias()
+    {
+        try {
+            // Obtener gestión activa
+            $gestionActiva = Gestion::where('estado', 'Activa')->first();
+            if (!$gestionActiva) {
+                return response()->json(['error' => 'No hay gestión activa'], 400);
+            }
+
+            // Obtener todos los inscritos de la gestión
+            $inscritos = Inscripcion::where('gestion_id', $gestionActiva->id)
+                ->with('postulante')
+                ->get();
+
+            if ($inscritos->isEmpty()) {
+                return response()->json(['error' => 'No hay inscritos para esta gestión'], 400);
+            }
+
+            // Obtener todos los exámenes de la gestión
+            $examenes = Examen::where('gestion_id', $gestionActiva->id)->get();
+
+            // Obtener todas las materias
+            $materias = Materia::all();
+
+            if ($examenes->isEmpty() || $materias->isEmpty()) {
+                return response()->json(['error' => 'No hay exámenes o materias registradas'], 400);
+            }
+
+            $contadorNotas = 0;
+
+            // Para cada inscrito
+            foreach ($inscritos as $inscripcion) {
+                // Para cada examen
+                foreach ($examenes as $examen) {
+                    // Para cada materia
+                    foreach ($materias as $materia) {
+                        // Generar nota aleatoria entre 30 y 95
+                        $notaMateria = mt_rand(30, 95);
+                        $notaPonderada = $notaMateria * $materia->ponderacion;
+
+                        // Guardar o actualizar la nota
+                        NotaExamen::updateOrCreate(
+                            [
+                                'id_examen' => $examen->id,
+                                'id_materia' => $materia->id,
+                                'id_inscripcion' => $inscripcion->id,
+                            ],
+                            [
+                                'nota_materia' => $notaMateria,
+                                'nota_ponderada' => $notaPonderada,
+                            ]
+                        );
+
+                        $contadorNotas++;
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se generaron exitosamente {$contadorNotas} notas aleatorias.",
+                'conteo' => [
+                    'inscritos' => $inscritos->count(),
+                    'examenes' => $examenes->count(),
+                    'materias' => $materias->count(),
+                    'notas_totales' => $contadorNotas
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error generando notas aleatorias: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

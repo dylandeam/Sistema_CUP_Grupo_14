@@ -227,9 +227,12 @@ Route::put('/admin/examenes/{examen}', [ExamenController::class,'update'])->name
 Route::delete('/admin/examenes/{examen}', [ExamenController::class,'destroy'])->name('admin.examenes.destroy')->middleware('auth', 'can:admin.examenes.destroy');
 
 // Rutas para Notas de Examen
-Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos')->middleware('auth', 'can:admin.notas_examen.inscritos');
-Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create')->middleware('auth', 'can:admin.notas_examen.create');
-Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store')->middleware('auth', 'can:admin.notas_examen.store');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos');
+    Route::post('/admin/notas_examen/generar-aleatorias', [NotaExamenController::class,'generarNotasAleatorias'])->name('admin.notas_examen.generar_aleatorias')->middleware('role:ADMINISTRADOR');
+    Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create');
+    Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store');
+});
 
 
 // Rutas para Asistencias

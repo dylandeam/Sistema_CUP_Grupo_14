@@ -31,6 +31,26 @@
     @endif
 
     @if($gestionActiva && isset($docente) && count($cargasHorarias) > 0)
+        {{-- Botón para administrador: Generar notas aleatorias --}}
+        @if(auth()->user()->hasRole('ADMINISTRADOR'))
+        <div class="col-md-12 mb-3">
+            <div class="card card-outline card-warning">
+                <div class="card-header bg-warning">
+                    <h3 class="card-title"><b>Herramientas de Administrador</b></h3>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-warning" onclick="generarNotasAleatorias()">
+                        <i class="fas fa-random mr-2"></i>Generar Notas Aleatorias (30-95) Para Todos
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Genera notas aleatorias entre 30 y 95 para todos los inscritos, en todas las materias y exámenes.
+                    </small>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="col-md-12">
             <div class="card card-outline card-primary">
                 <div class="card-header bg-primary">
@@ -284,6 +304,58 @@ function editarNota(idInscripcion) {
     // Enfocar el campo de nota para editar
     inputNota.focus();
     inputNota.select();
+}
+
+function generarNotasAleatorias() {
+    if (!confirm('¿Estás seguro de que deseas generar notas aleatorias (30-95) para todos los inscritos en todas las materias y exámenes? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    const btnGenerar = event.target;
+    btnGenerar.disabled = true;
+    btnGenerar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando notas...';
+
+    const url = '{{ route("admin.notas_examen.generar_aleatorias") }}';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else if (data.success) {
+            const mensaje = `✓ Notas generadas exitosamente!\n\n` +
+                           `Inscritos: ${data.conteo.inscritos}\n` +
+                           `Exámenes: ${data.conteo.examenes}\n` +
+                           `Materias: ${data.conteo.materias}\n` +
+                           `Total de notas: ${data.conteo.notas_totales}\n\n` +
+                           `${data.message}`;
+            alert(mensaje);
+            // Recargar la página después de 2 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al generar notas: ' + error.message);
+    })
+    .finally(() => {
+        btnGenerar.disabled = false;
+        btnGenerar.innerHTML = '<i class="fas fa-random mr-2"></i>Generar Notas Aleatorias (30-95) Para Todos';
+    });
 }
 
 // Permitir Enter en el select para cargar inscritos
