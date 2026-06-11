@@ -164,6 +164,18 @@ class AsistenciaController extends Controller
     public function marcarTodosPresentes(Request $request)
     {
         try {
+            // Verificar autenticación
+            if (!auth()->check()) {
+                return response()->json(['error' => 'Usuario no autenticado'], 401);
+            }
+
+            $user = auth()->user();
+            
+            // Verificar que sea administrador o docente
+            if (!$user->hasAnyRole(['ADMINISTRADOR', 'DOCENTE'])) {
+                return response()->json(['error' => 'No tienes permiso para realizar esta acción'], 403);
+            }
+
             // Obtener gestión activa
             $gestionActiva = Gestion::where('estado', 'Activa')->first();
             if (!$gestionActiva) {
@@ -204,6 +216,13 @@ class AsistenciaController extends Controller
                     $contadorAsistencias++;
                 }
             }
+
+            Log::info('Asistencias marcadas como presentes', [
+                'usuario_id' => $user->id,
+                'conteo' => $contadorAsistencias,
+                'inscritos' => $inscritos->count(),
+                'grupos' => $grupos->count()
+            ]);
 
             return response()->json([
                 'success' => true,

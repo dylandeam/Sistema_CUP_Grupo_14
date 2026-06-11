@@ -213,6 +213,18 @@ class NotaExamenController extends Controller
     public function generarNotasAleatorias()
     {
         try {
+            // Verificar autenticación
+            if (!auth()->check()) {
+                return response()->json(['error' => 'Usuario no autenticado'], 401);
+            }
+
+            $user = auth()->user();
+            
+            // Verificar que sea administrador o docente
+            if (!$user->hasAnyRole(['ADMINISTRADOR', 'DOCENTE'])) {
+                return response()->json(['error' => 'No tienes permiso para realizar esta acción'], 403);
+            }
+
             // Obtener gestión activa
             $gestionActiva = Gestion::where('estado', 'Activa')->first();
             if (!$gestionActiva) {
@@ -267,6 +279,14 @@ class NotaExamenController extends Controller
                     }
                 }
             }
+
+            Log::info('Notas aleatorias generadas exitosamente', [
+                'usuario_id' => $user->id,
+                'conteo' => $contadorNotas,
+                'inscritos' => $inscritos->count(),
+                'examenes' => $examenes->count(),
+                'materias' => $materias->count()
+            ]);
 
             return response()->json([
                 'success' => true,
