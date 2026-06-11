@@ -7,6 +7,7 @@ use App\Models\Docente;
 use App\Models\Gestion;
 use App\Models\CargaHoraria;
 use App\Models\Inscripcion;
+use App\Models\Grupo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -78,7 +79,7 @@ class AsistenciaController extends Controller
             }
 
             // Obtener el grupo
-            $grupo = \App\Models\Grupo::find($grupoId);
+            $grupo = Grupo::find($grupoId);
             if (!$grupo) {
                 return response()->json(['error' => 'Grupo no encontrado'], 404);
             }
