@@ -32,12 +32,8 @@ class PostulanteGrupoController extends Controller
             ->get();
 
         // Contar inscritos por grupo
-        $grupos = $grupos->map(function ($grupo) use ($gestionActiva) {
-            $inscritos = Inscripcion::where('modalidad_id', $grupo->id_modalidad)
-                ->where('turno_id', $grupo->id_turno)
-                ->where('gestion_id', $gestionActiva->id)
-                ->count();
-            
+        $grupos = $grupos->map(function ($grupo) {
+            $inscritos = Inscripcion::where('grupo_id', $grupo->id)->count();
             $grupo->total_inscritos = $inscritos;
             return $grupo;
         });
@@ -64,10 +60,8 @@ class PostulanteGrupoController extends Controller
         // Cargar modalidad y turno
         $grupo->load(['modalidad', 'turno']);
 
-        // Obtener inscritos del grupo (por modalidad, turno y gestión)
-        $inscritos = Inscripcion::where('modalidad_id', $grupo->id_modalidad)
-            ->where('turno_id', $grupo->id_turno)
-            ->where('gestion_id', $gestionActiva->id)
+        // Obtener inscritos del grupo por grupo_id
+        $inscritos = Inscripcion::where('grupo_id', $grupo->id)
             ->with('postulante')
             ->orderBy('postulante_codigo')
             ->get();

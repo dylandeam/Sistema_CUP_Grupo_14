@@ -62,10 +62,7 @@ class GrupoController extends Controller
         // Cargar relaciones necesarias
         $grupo->load(['gestion', 'turno', 'modalidad', 'aula']);
 
-        $ocupados = \App\Models\Inscripcion::where('gestion_id', $grupo->id_gestion)
-            ->where('modalidad_id', $grupo->id_modalidad)
-            ->where('turno_id', $grupo->id_turno)
-            ->count();
+        $ocupados = \App\Models\Inscripcion::where('grupo_id', $grupo->id)->count();
 
         return view('admin.grupos.show', compact('grupo', 'ocupados'));
     }

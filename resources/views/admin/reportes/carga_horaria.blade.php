@@ -26,6 +26,26 @@
                 </button>
             </div>
         </div>
+    @elseif($error)
+        <div class="col-md-12">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <strong>⚠️ No se puede generar el reporte:</strong>
+                <p>{{ $error }}</p>
+                @if(strpos($error, 'docentes registrados') !== false)
+                    <a href="{{ route('admin.docentes.create') }}" class="btn btn-sm btn-primary mt-2">
+                        <i class="fas fa-plus"></i> Registrar Docentes
+                    </a>
+                @elseif(strpos($error, 'carga horaria') !== false)
+                    <a href="{{ route('admin.carga_horaria.index') }}" class="btn btn-sm btn-primary mt-2">
+                        <i class="fas fa-calendar"></i> Asignar Carga Horaria
+                    </a>
+                @endif
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
     @else
         <div class="col-md-12">
             <div class="card card-outline card-primary">
@@ -92,18 +112,6 @@
             </div>
         </div>
 
-        <!-- Mostrar errores -->
-        @if($error)
-            <div class="col-md-12 mt-3">
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-info-circle"></i> {{ $error }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
         <!-- VISTA GENERAL -->
         @if ($tipoVista === 'general' && $cargasHorarias->count() > 0)
             <div class="col-md-12 mt-3">
@@ -120,12 +128,13 @@
                                         <th>Materia</th>
                                         <th>Grupo</th>
                                         <th>Turno</th>
-                                        <th>Horario</th>
+                                        <th>Horas Trabajadas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($cargasHorarias as $codigo => $cargas)
                                         @php $docente = $cargas->first()->docente; @endphp
+                                        @php $carga_primera = $cargas->first(); @endphp
                                         @foreach ($cargas as $index => $carga)
                                             <tr>
                                                 @if ($index === 0)
@@ -136,10 +145,11 @@
                                                 <td>{{ $carga->materia?->nombre ?? 'N/A' }}</td>
                                                 <td>{{ $carga->grupo?->nombre ?? 'N/A' }}</td>
                                                 <td>{{ $carga->grupo?->turno?->nombre ?? 'N/A' }}</td>
-                                                <td>
-                                                    {{ substr($carga->horario?->hora_inicio ?? 'N/A', 0, 5) }} - 
-                                                    {{ substr($carga->horario?->hora_fin ?? 'N/A', 0, 5) }}
-                                                </td>
+                                                @if ($index === 0)
+                                                    <td rowspan="{{ $cargas->count() }}" class="align-middle font-weight-bold text-info">
+                                                        {{ $carga_primera->horas_trabajadas_total ?? 0 }} horas
+                                                    </td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     @endforeach
@@ -197,20 +207,19 @@
                                         <th>Miércoles</th>
                                         <th>Jueves</th>
                                         <th>Viernes</th>
-                                        <th>Sábado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($turnosPorDia as $fila)
                                         <tr>
                                             <td class="font-weight-bold">{{ $fila['hora_display'] }}</td>
-                                            @foreach (['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] as $dia)
+                                            @foreach (['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'] as $dia)
                                                 <td>
-                                                    @if ($fila[$dia])
+                                                    @if (isset($fila[$dia]) && $fila[$dia] && count($fila[$dia]) > 0)
                                                         @foreach ($fila[$dia] as $item)
                                                             <div style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; margin-bottom: 5px;">
                                                                 <strong style="color: #1976d2;">{{ $item['materia'] ?? 'N/A' }}</strong><br>
-                                                                <small style="color: #555;">{{ $item['grupo'] ?? 'N/A' }}</small>
+                                                                <small style="color: #555;">Gr: {{ $item['grupo'] ?? 'N/A' }}</small>
                                                             </div>
                                                         @endforeach
                                                     @else

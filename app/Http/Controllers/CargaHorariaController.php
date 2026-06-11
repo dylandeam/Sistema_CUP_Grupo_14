@@ -20,29 +20,26 @@ class CargaHorariaController extends Controller
     {
         // Validar que existan docentes registrados
         $docentesCount = Docente::count();
-        if ($docentesCount === 0) {
-            return redirect()->route('admin.docentes.index')
-                ->with('error', 'Debes registrar al menos un docente antes de ver la carga horaria.')
-                ->with('icono', 'warning');
-        }
         
-        $this->generarCargaHorariaAutomatica();
-
-        // Obtener docentes únicos que tienen carga horaria con gestión activa
         $gestionActiva = Gestion::where('estado', 'Activa')->first();
+        $docentes = collect();
+        $activeGestionMessage = null;
         
-        if (!$gestionActiva) {
-            $docentes = collect();
-            $activeGestionMessage = 'No hay gestiones activas.';
+        if ($docentesCount === 0) {
+            $activeGestionMessage = 'No hay docentes registrados en el sistema. Por favor, registre docentes antes de asignar carga horaria.';
+        } elseif (!$gestionActiva) {
+            $activeGestionMessage = 'No hay gestiones activas. No se puede asignar carga horaria sin una gestión activa.';
         } else {
+            // Generar carga horaria automática
+            $this->generarCargaHorariaAutomatica();
+
+            // Obtener docentes únicos que tienen carga horaria con gestión activa
             $docentes = Docente::whereHas('cargaHoraria', function ($query) use ($gestionActiva) {
                 $query->where('gestion_id', $gestionActiva->id);
             })->with(['cargaHoraria' => function ($query) use ($gestionActiva) {
                 $query->where('gestion_id', $gestionActiva->id)
                       ->with(['materia', 'grupo', 'horario', 'aula', 'gestion']);
             }])->orderBy('nombre')->get();
-            
-            $activeGestionMessage = null;
         }
 
         return view('admin.carga_horarias.index', compact('docentes', 'activeGestionMessage', 'gestionActiva'));
@@ -57,45 +54,34 @@ class CargaHorariaController extends Controller
     // Mostrar carga horaria de un docente específico
     public function showDocente(Docente $docente)
     {
-        // Validar que existan docentes registrados
-        $docentesCount = Docente::count();
-        if ($docentesCount === 0) {
-            return redirect()->route('admin.docentes.index')
-                ->with('error', 'No hay docentes registrados.')
-                ->with('icono', 'warning');
-        }
-        
         $gestionActiva = Gestion::where('estado', 'Activa')->first();
+        $cargaHoraria = collect();
+        $horasTrabajadas = 0;
+        $horasRequeridas = 20;
+        $activeGestionMessage = null;
         
         if (!$gestionActiva) {
-            $cargaHoraria = collect();
-            $activeGestionMessage = 'No hay gestiones activas.';
+            $activeGestionMessage = 'No hay gestiones activas. No se puede ver la carga horaria sin una gestión activa.';
         } else {
             $cargaHoraria = CargaHoraria::with(['materia', 'grupo', 'horario', 'aula', 'gestion'])
                 ->where('docente_codigo', $docente->codigo)
                 ->where('gestion_id', $gestionActiva->id)
                 ->get();
             
-            $activeGestionMessage = null;
-        }
-
-        // Calcular horas trabajadas
-        $horasTrabajadas = 0;
-        foreach ($cargaHoraria as $carga) {
-            if ($carga->horario) {
-                $inicio = \Carbon\Carbon::createFromFormat('H:i:s', $carga->horario->hora_inicio);
-                $fin = \Carbon\Carbon::createFromFormat('H:i:s', $carga->horario->hora_fin);
-                $minutos = $inicio->diffInMinutes($fin);
-                
-                // Si no es receso (>= 20 minutos), contar como horas trabajadas
-                if ($minutos >= 20) {
-                    $horasTrabajadas += ($minutos / 60);
+            // Calcular horas trabajadas
+            foreach ($cargaHoraria as $carga) {
+                if ($carga->horario) {
+                    $inicio = \Carbon\Carbon::createFromFormat('H:i:s', $carga->horario->hora_inicio);
+                    $fin = \Carbon\Carbon::createFromFormat('H:i:s', $carga->horario->hora_fin);
+                    $minutos = $inicio->diffInMinutes($fin);
+                    
+                    // Si no es receso (>= 20 minutos), contar como horas trabajadas
+                    if ($minutos >= 20) {
+                        $horasTrabajadas += ($minutos / 60);
+                    }
                 }
             }
         }
-
-        // Horas requeridas: 4 horas * 5 días a la semana (suposición estándar)
-        $horasRequeridas = 20;
 
         return view('admin.carga_horarias.show_docente', compact('docente', 'cargaHoraria', 'horasTrabajadas', 'horasRequeridas', 'activeGestionMessage', 'gestionActiva'));
     }

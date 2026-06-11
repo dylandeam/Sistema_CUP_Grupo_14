@@ -17,9 +17,22 @@
             </div>
             <div class="card-body">
                 @if(!empty($activeGestionMessage))
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        {{ $activeGestionMessage }}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <strong>⚠️ No se puede asignar carga horaria:</strong>
+                        <p>{{ $activeGestionMessage }}</p>
+                        @if(strpos($activeGestionMessage, 'docentes registrados') !== false)
+                            <a href="{{ route('admin.docentes.create') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-plus"></i> Registrar Docentes
+                            </a>
+                        @elseif(strpos($activeGestionMessage, 'gestiones activas') !== false)
+                            <a href="{{ route('admin.gestion.index') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-calendar"></i> Crear Gestión Activa
+                            </a>
+                        @endif
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                 @endif
 

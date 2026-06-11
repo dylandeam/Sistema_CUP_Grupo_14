@@ -48,6 +48,21 @@
                 </div>
             </div>
             <div class="card-body">
+                @if(!empty($activeGestionMessage))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <strong>⚠️ {{ $activeGestionMessage }}</strong>
+                        @if(strpos($activeGestionMessage, 'gestiones activas') !== false)
+                            <a href="{{ route('admin.gestion.index') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-calendar"></i> Crear Gestión Activa
+                            </a>
+                        @endif
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                @endif
+
                 @if($cargaHoraria->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm">
@@ -127,10 +142,14 @@
                         </div>
                     </div>
                 @else
-                    <div class="alert alert-warning">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Este docente no tiene materias asignadas.
-                    </div>
+                    @if(!empty($activeGestionMessage))
+                        {{-- El error ya se mostró arriba --}}
+                    @else
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Este docente no tiene materias asignadas en la gestión activa.
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>

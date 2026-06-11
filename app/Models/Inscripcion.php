@@ -12,6 +12,7 @@ use App\Models\Requisitos_Postulante;
 use App\Models\Inscripcion_Carrera;
 use App\Models\Carrera;
 use App\Models\Turno;
+use App\Models\Grupo;
 
 class Inscripcion extends Model
 {
@@ -28,6 +29,7 @@ class Inscripcion extends Model
         'gestion_id',
         'modalidad_id',
         'turno_id',
+        'grupo_id',
     ];
 
     // Relación con postulante
@@ -52,6 +54,12 @@ class Inscripcion extends Model
     public function turno()
     {
         return $this->belongsTo(Turno::class, 'turno_id', 'id');
+    }
+
+    // Relación con grupo
+    public function grupo()
+    {
+        return $this->belongsTo(Grupo::class, 'grupo_id', 'id');
     }
 
     public function pago()

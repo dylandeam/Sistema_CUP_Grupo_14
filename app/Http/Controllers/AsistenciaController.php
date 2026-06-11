@@ -76,10 +76,8 @@ class AsistenciaController extends Controller
             return response()->json(['error' => 'Grupo no encontrado'], 404);
         }
 
-        // Obtener inscritos del grupo (por modalidad, turno y gestión)
-        $inscritos = Inscripcion::where('modalidad_id', $grupo->id_modalidad)
-            ->where('turno_id', $grupo->id_turno)
-            ->where('gestion_id', $gestionActiva->id)
+        // Obtener inscritos del grupo por grupo_id
+        $inscritos = Inscripcion::where('grupo_id', $grupo->id)
             ->with('postulante')
             ->orderBy('postulante_codigo')
             ->get();

@@ -35,11 +35,8 @@ class PromedioExamenController extends Controller
             ->get();
 
         // Contar inscritos por grupo
-        $grupos = $grupos->map(function ($grupo) use ($gestionActiva) {
-            $inscritos = Inscripcion::where('modalidad_id', $grupo->id_modalidad)
-                ->where('turno_id', $grupo->id_turno)
-                ->where('gestion_id', $gestionActiva->id)
-                ->count();
+        $grupos = $grupos->map(function ($grupo) {
+            $inscritos = Inscripcion::where('grupo_id', $grupo->id)->count();
             
             $grupo->total_inscritos = $inscritos;
             return $grupo;
@@ -67,9 +64,7 @@ class PromedioExamenController extends Controller
         ->orderBy('nro_examen')
         ->get();
 
-    $inscritos = Inscripcion::where('modalidad_id', $grupo->id_modalidad)
-        ->where('turno_id', $grupo->id_turno)
-        ->where('gestion_id', $gestionActiva->id)
+    $inscritos = Inscripcion::where('grupo_id', $grupo->id)
         ->with('postulante')
         ->orderBy('postulante_codigo')
         ->get();

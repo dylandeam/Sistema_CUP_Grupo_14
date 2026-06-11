@@ -21,7 +21,15 @@ class GrupoService
             return;
         }
 
+        // 1. Crear grupos si es necesario
         self::generarGruposParaCombo(
+            $inscripcion->gestion_id,
+            $inscripcion->modalidad_id,
+            $inscripcion->turno_id
+        );
+
+        // 2. Asignar inscritos a grupos
+        self::asignarInscritosAGrupos(
             $inscripcion->gestion_id,
             $inscripcion->modalidad_id,
             $inscripcion->turno_id
@@ -248,5 +256,74 @@ class GrupoService
 
         // Fallback: primera letra del turno en mayúscula
         return strtoupper(mb_substr($nombre, 0, 1));
+    }
+
+    /**
+     * Asignar inscritos a grupos de manera ordenada y sin duplicación.
+     * Distribuye máximo 70 inscritos por grupo.
+     */
+    private static function asignarInscritosAGrupos(int $gestionId, int $modalidadId, int $turnoId): void
+    {
+        $capacidad = config('inscripcion.cupos_grupo', 70);
+
+        // Obtener los grupos para esta combinación, ordenados por nombre
+        $grupos = Grupo::where('id_gestion', $gestionId)
+            ->where('id_modalidad', $modalidadId)
+            ->where('id_turno', $turnoId)
+            ->orderBy('nombre')
+            ->get();
+
+        if ($grupos->isEmpty()) {
+            return;
+        }
+
+        // Obtener todos los inscritos de esta combinación, ordenados por ID (para consistencia)
+        $inscritos = Inscripcion::where('gestion_id', $gestionId)
+            ->where('modalidad_id', $modalidadId)
+            ->where('turno_id', $turnoId)
+            ->orderBy('id')
+            ->get();
+
+        if ($inscritos->isEmpty()) {
+            return;
+        }
+
+        DB::transaction(function () use ($inscritos, $grupos, $capacidad) {
+            $grupoIndex = 0;
+            $contadorPorGrupo = [];
+
+            // Inicializar contadores de inscritos por grupo
+            foreach ($grupos as $index => $grupo) {
+                // Contar inscritos ya asignados a este grupo
+                $contadorPorGrupo[$grupo->id] = Inscripcion::where('grupo_id', $grupo->id)->count();
+            }
+
+            // Distribuir inscritos
+            foreach ($inscritos as $inscripcion) {
+                // Si el inscrito ya tiene grupo asignado, saltar
+                if ($inscripcion->grupo_id !== null) {
+                    continue;
+                }
+
+                // Buscar el primer grupo que tenga espacio
+                $grupoAsignado = null;
+                foreach ($grupos as $grupo) {
+                    $ocupados = $contadorPorGrupo[$grupo->id] ?? 0;
+                    if ($ocupados < $capacidad) {
+                        $grupoAsignado = $grupo;
+                        break;
+                    }
+                }
+
+                // Si no hay grupo con espacio, algo está mal (no debería ocurrir)
+                if (!$grupoAsignado) {
+                    continue;
+                }
+
+                // Asignar el inscrito a este grupo
+                $inscripcion->update(['grupo_id' => $grupoAsignado->id]);
+                $contadorPorGrupo[$grupoAsignado->id]++;
+            }
+        });
     }
 }
