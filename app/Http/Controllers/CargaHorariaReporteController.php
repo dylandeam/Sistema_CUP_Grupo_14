@@ -163,105 +163,46 @@ class CargaHorariaReporteController extends Controller
 
     /**
      * Construir tabla semanal con estructura de días y horarios
-     * Muestra cada materia en su día correspondiente con su horario
+     * Muestra carga horaria por turno
      */
     private function construirTablaSemanal($docente_codigo, Gestion $gestionActiva)
     {
         // Obtener todas las cargas del docente con sus relaciones
-        $cargas = CargaHoraria::with(['grupo', 'horario', 'materia'])
+        $cargas = CargaHoraria::with(['grupo', 'horario', 'materia', 'grupo.turno'])
             ->where('docente_codigo', $docente_codigo)
             ->where('gestion_id', $gestionActiva->id)
+            ->orderBy('grupo_id')
             ->get();
 
         if ($cargas->isEmpty()) {
             return collect();
         }
 
-        $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-        $tabla = [];
-
-        // Agrupar cargas por día de la semana
-        foreach ($dias as $dia) {
-            $cargasDelDia = $cargas->filter(function ($carga) use ($dia) {
-                return $carga->horario && $carga->horario->dia_semana === $dia;
-            })->sortBy(function ($carga) {
-                return $carga->horario->hora_inicio;
-            });
-
-            // Para cada carga del día, crear una fila
-            foreach ($cargasDelDia as $carga) {
-                $horaDisplay = substr($carga->horario->hora_inicio, 0, 5) . ' - ' . substr($carga->horario->hora_fin, 0, 5);
-                
-                // Verificar si ya existe una fila para este horario
-                $filaExistente = collect($tabla)->firstWhere('horario_display', $horaDisplay);
-                
-                if (!$filaExistente) {
-                    // Crear nueva fila para este horario
-                    $fila = [
-                        'horario_display' => $horaDisplay,
-                        'hora_inicio' => $carga->horario->hora_inicio,
-                    ];
-                    
-                    // Inicializar todos los días
-                    foreach ($dias as $d) {
-                        $fila[$d] = [];
-                    }
-                    
-                    // Agregar esta carga al día
-                    $fila[$dia][] = [
+        // Agrupar por horario
+        $tabla = $cargas->groupBy(function ($carga) {
+            return $carga->horario->hora_inicio ?? 'Sin horario';
+        })->map(function ($grupo, $horario) {
+            return [
+                'horario' => $horario,
+                'materias' => $grupo->map(function ($carga) {
+                    return [
                         'materia' => $carga->materia?->nombre,
                         'grupo' => $carga->grupo?->nombre,
+                        'turno' => $carga->grupo?->turno?->nombre,
                     ];
-                    
-                    $tabla[] = $fila;
-                } else {
-                    // Agregar carga al día de la fila existente
-                    $key = array_search($filaExistente, $tabla, true);
-                    if ($key !== false) {
-                        $tabla[$key][$dia][] = [
-                            'materia' => $carga->materia?->nombre,
-                            'grupo' => $carga->grupo?->nombre,
-                        ];
-                    }
-                }
-            }
-        }
-
-        // Ordenar por hora de inicio
-        usort($tabla, function ($a, $b) {
-            return strcmp($a['hora_inicio'], $b['hora_inicio']);
-        });
-
-        // Remover el campo hora_inicio (no se usa en la vista)
-        foreach ($tabla as &$fila) {
-            unset($fila['hora_inicio']);
-        }
+                })->values(),
+            ];
+        })->values();
 
         return collect($tabla);
     }
 
     /**
      * Construir tabla de horario diaria (por horas)
-     * Muestra todas las clases que dicta en el día seleccionado, con información de otros días
+     * Muestra todas las clases que dicta en el día seleccionado
      */
     private function construirTablaHoraria($docente_codigo, $fecha, Gestion $gestionActiva)
     {
-        // Obtener el día de la semana de la fecha
-        $diaSemana = Carbon::parse($fecha)->dayName;
-        
-        // Mapear nombre de día en inglés a español
-        $diasMapeo = [
-            'Monday' => 'Lunes',
-            'Tuesday' => 'Martes',
-            'Wednesday' => 'Miércoles',
-            'Thursday' => 'Jueves',
-            'Friday' => 'Viernes',
-            'Saturday' => 'Sábado',
-            'Sunday' => 'Domingo',
-        ];
-        
-        $diaEspanol = $diasMapeo[$diaSemana] ?? null;
-
         // Obtener todas las cargas del docente
         $cargas = CargaHoraria::with(['horario', 'materia', 'grupo'])
             ->where('docente_codigo', $docente_codigo)
@@ -272,71 +213,20 @@ class CargaHorariaReporteController extends Controller
             return collect();
         }
 
-        // Filtrar solo las cargas del día seleccionado
-        $cargasDelDia = $cargas->filter(function ($carga) use ($diaEspanol) {
-            return $carga->horario && $carga->horario->dia_semana === $diaEspanol;
-        })->sortBy(function ($carga) {
-            return $carga->horario->hora_inicio;
-        });
-
-        $tabla = [];
-
-        // Para cada horario del día, agrupar materias
-        foreach ($cargasDelDia as $carga) {
-            $horaDisplay = substr($carga->horario->hora_inicio, 0, 5) . ' - ' . substr($carga->horario->hora_fin, 0, 5);
-            
-            // Obtener todos los días donde esta materia se enseña
-            $diasConEstaMateria = $cargas
-                ->where('materia_id', $carga->materia_id)
-                ->where('grupo_id', $carga->grupo_id)
-                ->pluck('horario.dia_semana')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $diasDisplay = implode(', ', $diasConEstaMateria);
-
-            // Buscar si ya existe una fila para este horario
-            $filaExistente = collect($tabla)->firstWhere('horario_display', $horaDisplay);
-            
-            if (!$filaExistente) {
-                // Crear nueva fila
-                $tabla[] = [
-                    'horario_display' => $horaDisplay,
-                    'hora_inicio' => $carga->horario->hora_inicio,
-                    'materias' => [
-                        [
-                            'materia' => $carga->materia?->nombre,
-                            'grupo' => $carga->grupo?->nombre,
-                            'dias' => $diasDisplay,
-                        ]
-                    ],
-                ];
-            } else {
-                // Agregar a la fila existente si no está ya
-                $key = array_search($filaExistente, $tabla, true);
-                if ($key !== false) {
-                    $yaAgregada = collect($tabla[$key]['materias'])->firstWhere('materia', $carga->materia?->nombre);
-                    if (!$yaAgregada) {
-                        $tabla[$key]['materias'][] = [
-                            'materia' => $carga->materia?->nombre,
-                            'grupo' => $carga->grupo?->nombre,
-                            'dias' => $diasDisplay,
-                        ];
-                    }
-                }
-            }
-        }
-
-        // Ordenar por hora de inicio
-        usort($tabla, function ($a, $b) {
-            return strcmp($a['hora_inicio'], $b['hora_inicio']);
-        });
-
-        // Remover el campo hora_inicio (no se usa en la vista)
-        foreach ($tabla as &$fila) {
-            unset($fila['hora_inicio']);
-        }
+        // Agrupar por horario
+        $tabla = $cargas->groupBy(function ($carga) {
+            return $carga->horario->hora_inicio ?? 'Sin horario';
+        })->map(function ($grupo, $horario) {
+            return [
+                'horario' => $horario,
+                'materias' => $grupo->map(function ($carga) {
+                    return [
+                        'materia' => $carga->materia?->nombre,
+                        'grupo' => $carga->grupo?->nombre,
+                    ];
+                })->values(),
+            ];
+        })->values();
 
         return collect($tabla);
     }

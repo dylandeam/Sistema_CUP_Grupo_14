@@ -10,6 +10,7 @@ use App\Models\Inscripcion;
 use App\Models\Gestion;
 use App\Models\Materia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class NotaExamenController extends Controller
 {
@@ -88,22 +89,13 @@ class NotaExamenController extends Controller
                 return response()->json(['error' => 'Grupo no encontrado'], 404);
             }
 
-            // Obtener inscritos del grupo
-            // Primero intentar por grupo_id (nuevos inscritos después de migración)
-            $inscritos = Inscripcion::where('grupo_id', $grupo->id)
+            // Obtener inscritos del grupo usando modalidad+turno+gestion
+            $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
+                ->where('modalidad_id', $grupo->id_modalidad)
+                ->where('turno_id', $grupo->id_turno)
                 ->with('postulante')
                 ->orderBy('postulante_codigo')
                 ->get();
-
-            // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
-            if ($inscritos->isEmpty()) {
-                $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
-                    ->where('modalidad_id', $grupo->id_modalidad)
-                    ->where('turno_id', $grupo->id_turno)
-                    ->with('postulante')
-                    ->orderBy('postulante_codigo')
-                    ->get();
-            }
 
             if ($inscritos->isEmpty()) {
                 return response()->json(['inscritos' => []]);
@@ -137,7 +129,7 @@ class NotaExamenController extends Controller
 
             return response()->json(['inscritos' => $datos]);
         } catch (\Exception $e) {
-            \Log::error('Error en NotaExamen getInscritosPorGrupo: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error en NotaExamen getInscritosPorGrupo: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
         }
     }
