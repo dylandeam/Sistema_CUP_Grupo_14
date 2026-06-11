@@ -148,8 +148,20 @@ class DocenteController extends Controller
     public function show(Docente $docente)
     {
         $docente->load(['user.roles', 'materias', 'requisitos']);
+        
+        // Obtener cargas horarias de la gestión activa
+        $gestionActiva = \App\Models\Gestion::where('estado', 'Activa')->first();
+        $cargasHorarias = $gestionActiva 
+            ? \App\Models\CargaHoraria::where('docente_codigo', $docente->codigo)
+                ->where('gestion_id', $gestionActiva->id)
+                ->with(['grupo', 'materia'])
+                ->get()
+            : collect();
+        
+        // Contar grupos únicos asignados
+        $gruposAsignados = $cargasHorarias->pluck('grupo_id')->unique()->count();
 
-        return view('admin.docentes.show', compact('docente'));
+        return view('admin.docentes.show', compact('docente', 'gruposAsignados', 'cargasHorarias'));
     }
 
     private function inferirArea(string $titulo, string $maestria, string $diplomado): ?string

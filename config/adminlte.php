@@ -317,13 +317,6 @@ return [
                 ],
 
                 [
-                    'text'    => 'Gestionar Cuentas Masivas',
-                    'url'     => 'admin/cuentas-masivas',
-                    'icon' => 'fas fa-clipboard-list',
-                    'classes' => 'bg-blue text-white',
-                ],
-
-                [
                     'text'    => 'Bitácora',
                     'url'     => 'admin/bitacora',
                     'icon' => 'fas fa-clipboard-list',
@@ -428,14 +421,14 @@ return [
                 [ 
                     'text'    => 'Horario',
                     'url'     => 'admin/horarios',
-                    'icon'    => 'fas fa-clock',
+                    'icon'    => 'fas fa-calendar-alt',
                     'classes' => 'bg-blue text-white',
                 ],
 
                 [ 
                     'text'    => 'Turnos',
                     'url'     => 'admin/turnos',
-                    'icon'    => 'fas fa-clock',
+                    'icon'    => 'fas fa-sync',
                     'classes' => 'bg-blue text-white',
                 ],
 
@@ -449,7 +442,7 @@ return [
                 [ 
                     'text'    => 'Carga Horaria',
                     'url'     => 'admin/carga_horaria',
-                    'icon'    => 'fas fa-fw fa-clock',
+                    'icon'    => 'fas fa-briefcase',
                     'classes' => 'bg-blue text-white',
                 ],
 
@@ -470,24 +463,12 @@ return [
             'classes' => 'bg-dark text-white',
             'submenu' => [
                 [
-                    'text'    => 'Inscripción',
-                    'icon'    => 'fas fa-fw fa-chalkboard-teacher',
+                ],
+                [
+                    'text'    => 'Inscripciones',
+                    'url'     => 'admin/inscripciones',
+                    'icon'    => 'fas fa-fw fa-user-plus',
                     'classes' => 'bg-blue text-white',
-                    'submenu' => [
-                        [
-                            'text' => 'Inscripción de Postulantes',
-                            'url'  => 'admin/inscripciones',
-                            'icon' => 'fas fa-fw fa-user-plus',
-                            'classes' => 'bg-light text-dark',
-                        ],
-
-                        [
-                            'text' => 'Boleta de Inscripción',
-                            'url'  => 'admin/inscripciones/boleta',
-                            'icon' => 'fas fa-fw fa-file-invoice',
-                            'classes' => 'bg-light text-dark',
-                        ],
-                    ],
                 ],
 
                 [
@@ -508,7 +489,28 @@ return [
                             'icon' => 'fas fa-fw fa-clock',
                             'classes' => 'bg-light text-dark',
                         ],
+
+                        [
+                            'text' => 'Calculo de Promedios de Examen',
+                            'url'  => 'admin/promedios_examen',
+                            'icon' => 'fas fa-fw fa-clock',
+                            'classes' => 'bg-light text-dark',
+                        ],
                     ],
+                ],
+
+                [
+                    'text'    => 'Asistencia',
+                    'url'     => 'admin/asistencias',
+                    'icon'    => 'fas fa-fw fa-user-check',
+                    'classes' => 'bg-blue text-white',
+                ],
+
+                [
+                    'text'    => 'Postulantes en Grupos',
+                    'url'     => 'admin/postulante-grupos',
+                    'icon'    => 'fas fa-fw fa-users',
+                    'classes' => 'bg-blue text-white',
                 ],
 
                 [
@@ -519,8 +521,8 @@ return [
                 ],
 
                 [
-                    'text'    => 'Historial Academico',
-                    'url'     => 'admin/historial-academico',
+                    'text'    => 'Resultados Finales',
+                    'url'     => 'admin/resultados-finales',
                     'icon'    => 'fas fa-fw fa-history',
                     'classes' => 'bg-blue text-white',
                 ],

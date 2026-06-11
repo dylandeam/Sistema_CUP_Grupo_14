@@ -176,6 +176,42 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.examenes.edit', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
         Permission::firstOrCreate(['name' => 'admin.examenes.update', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
         Permission::firstOrCreate(['name' => 'admin.examenes.destroy', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+
+        // Permisos para Notas de Exámenes
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.create', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.store', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.edit', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.update', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.destroy', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.notas_examen.inscritos', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+
+
+        // Permisos para Asistencias
+        Permission::firstOrCreate(['name' => 'admin.asistencias.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.create', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.store', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.edit', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.update', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+        Permission::firstOrCreate(['name' => 'admin.asistencias.destroy', 'guard_name' => 'web'])->assignRole($administrador, $administrativo, $docente);
+
+        // Permisos para Postulantes en Grupos
+        Permission::firstOrCreate(['name' => 'admin.postulante_grupos.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.postulante_grupos.show', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+
+        // Permisos para Promedios de Examen
+        Permission::firstOrCreate(['name' => 'admin.promedios_examen.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.promedios_examen.show', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+
+        // Permisos para Resultados Finales
+        Permission::firstOrCreate(['name' => 'admin.resultados.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.resultados.generar', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.resultados.admitidos', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.resultados.no_admitidos', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+
+        // Permisos para Reportes
+        Permission::firstOrCreate(['name' => 'admin.reportes.index', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
+        Permission::firstOrCreate(['name' => 'admin.reportes.export', 'guard_name' => 'web'])->assignRole($administrador, $administrativo);
     }
 
 }

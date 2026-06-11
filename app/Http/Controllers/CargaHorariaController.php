@@ -18,6 +18,14 @@ class CargaHorariaController extends Controller
     // Listar todas las cargas horarias agrupadas por docente
     public function index()
     {
+        // Validar que existan docentes registrados
+        $docentesCount = Docente::count();
+        if ($docentesCount === 0) {
+            return redirect()->route('admin.docentes.index')
+                ->with('error', 'Debes registrar al menos un docente antes de ver la carga horaria.')
+                ->with('icono', 'warning');
+        }
+        
         $this->generarCargaHorariaAutomatica();
 
         // Obtener docentes únicos que tienen carga horaria con gestión activa
@@ -49,6 +57,14 @@ class CargaHorariaController extends Controller
     // Mostrar carga horaria de un docente específico
     public function showDocente(Docente $docente)
     {
+        // Validar que existan docentes registrados
+        $docentesCount = Docente::count();
+        if ($docentesCount === 0) {
+            return redirect()->route('admin.docentes.index')
+                ->with('error', 'No hay docentes registrados.')
+                ->with('icono', 'warning');
+        }
+        
         $gestionActiva = Gestion::where('estado', 'Activa')->first();
         
         if (!$gestionActiva) {

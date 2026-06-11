@@ -54,7 +54,10 @@ class NotaExamenController extends Controller
             ->with(['materia', 'grupo', 'grupo.turno', 'grupo.modalidad'])
             ->get();
 
-        return view('admin.notas_examen.create', compact('gestionActiva', 'docente', 'examenes', 'cargasHorarias'));
+        // Obtener la materia para la cual el docente fue contratado (primera carga horaria)
+        $materiaDocente = $cargasHorarias->first()?->materia;
+
+        return view('admin.notas_examen.create', compact('gestionActiva', 'docente', 'examenes', 'cargasHorarias', 'materiaDocente'));
     }
 
     /**
@@ -98,7 +101,7 @@ class NotaExamenController extends Controller
 
             $datos[] = [
                 'id_inscripcion' => $inscripcion->id,
-                'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellido,
+                'nombre' => $inscripcion->postulante->nombre . ' ' . $inscripcion->postulante->apellidos,
                 'nota_materia' => $notaExamen->nota_materia ?? '',
                 'nota_ponderada' => $notaExamen->nota_ponderada ?? '',
                 'ponderacion' => $materia->ponderacion ?? 0,

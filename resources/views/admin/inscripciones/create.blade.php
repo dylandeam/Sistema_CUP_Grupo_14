@@ -18,6 +18,39 @@
                 </ul>
             </div>
         @endif
+
+        {{-- BÚSQUEDA DE POSTULANTE PARA RE-INSCRIPCIÓN --}}
+        <div class="card card-outline card-secondary mb-4">
+            <div class="card-header bg-secondary">
+                <h3 class="card-title"><i class="fas fa-search mr-2"></i>Buscar Postulante Existente (Re-inscripción)</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Si el postulante ya está registrado, busque por nombre o CI y sus datos se rellenarán automáticamente. Esto permite que postulantes rechazados en gestiones anteriores se re-inscriban sin crear cuenta de usuario nueva.
+                </p>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="buscar_postulante">Buscar por nombre o CI</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-search"></i></span></div>
+                                <input type="text" class="form-control" id="buscar_postulante" placeholder="Ej: Juan Pérez o 9876543" autocomplete="off">
+                            </div>
+                            <small class="form-text text-muted">Mínimo 2 caracteres para buscar</small>
+                        </div>
+                        <div id="buscar_resultados" class="mt-2" style="display:none;">
+                            <div class="list-group" id="lista_resultados"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-warning btn-block mt-4" id="btn-limpiar-busqueda">
+                            <i class="fas fa-times mr-1"></i>Limpiar búsqueda
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
  
         <form action="{{ route('admin.inscripciones.store') }}" method="post" enctype="multipart/form-data" id="form-postulante">
             @csrf
@@ -635,5 +668,118 @@
             img.style.display = 'none';
         }
     }
+
+    // ===== BÚSQUEDA DE POSTULANTE PARA RE-INSCRIPCIÓN =====
+    let postulanteBuscadoId = null;
+
+    document.getElementById('buscar_postulante')?.addEventListener('input', async function (e) {
+        const query = e.target.value.trim();
+        const resultadosDiv = document.getElementById('buscar_resultados');
+        const listaResultados = document.getElementById('lista_resultados');
+
+        if (query.length < 2) {
+            resultadosDiv.style.display = 'none';
+            listaResultados.innerHTML = '';
+            return;
+        }
+
+        try {
+            const response = await fetch(`{{ route('admin.inscripciones.buscar') }}?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.success && data.data.length > 0) {
+                listaResultados.innerHTML = data.data.map((postulante, idx) => `
+                    <button type="button" class="list-group-item list-group-item-action" data-postulante-id="${postulante.id}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${postulante.nombre} ${postulante.apellidos}</h6>
+                            <small>CI: ${postulante.ci}</small>
+                        </div>
+                        <small>${postulante.email || 'Sin email'}</small>
+                    </button>
+                `).join('');
+                resultadosDiv.style.display = 'block';
+
+                // Event listeners para cada resultado
+                document.querySelectorAll('#lista_resultados button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const postulanteId = btn.dataset.postulanteId;
+                        cargarPostulante(postulanteId);
+                    });
+                });
+            } else {
+                listaResultados.innerHTML = '<div class="alert alert-info">No se encontraron postulantes</div>';
+                resultadosDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error al buscar postulante:', error);
+            listaResultados.innerHTML = '<div class="alert alert-danger">Error al realizar la búsqueda</div>';
+            resultadosDiv.style.display = 'block';
+        }
+    });
+
+    function cargarPostulante(postulanteId) {
+        fetch(`{{ route('admin.inscripciones.obtener', '') }}/${postulanteId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Respuesta del servidor:', data);
+                
+                if (!data.success) {
+                    const errorMsg = data.message || 'Error desconocido al obtener datos del postulante';
+                    alert('Error: ' + errorMsg);
+                    return;
+                }
+
+                const postulante = data.data;
+                
+                // Rellenar formulario con datos del postulante
+                if (document.getElementById('nombre')) document.getElementById('nombre').value = postulante.nombre || '';
+                if (document.getElementById('apellidos')) document.getElementById('apellidos').value = postulante.apellidos || '';
+                if (document.getElementById('ci')) document.getElementById('ci').value = postulante.ci || '';
+                if (document.getElementById('email')) document.getElementById('email').value = postulante.email || '';
+                if (document.getElementById('fecha_nacimiento')) document.getElementById('fecha_nacimiento').value = postulante.fecha_nacimiento || '';
+                if (document.getElementById('sexo')) document.getElementById('sexo').value = postulante.sexo || '';
+                if (document.getElementById('telefono')) document.getElementById('telefono').value = postulante.telefono || '';
+                if (document.getElementById('direccion')) document.getElementById('direccion').value = postulante.direccion || '';
+                if (document.getElementById('ciudad')) document.getElementById('ciudad').value = postulante.ciudad || '';
+                if (document.getElementById('colegio')) document.getElementById('colegio').value = postulante.colegio || '';
+                
+                postulanteBuscadoId = postulanteId;
+
+                // Ocultar resultados
+                document.getElementById('buscar_resultados').style.display = 'none';
+                document.getElementById('buscar_postulante').value = `${postulante.nombre} ${postulante.apellidos}`;
+
+                // Mostrar alerta de éxito
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Postulante encontrado:</strong> ${postulante.nombre} ${postulante.apellidos}
+                    <br><small>Los datos del postulante han sido rellenados. Proceda a completar el resto de la inscripción.</small>
+                `;
+                document.querySelector('.col-md-12').insertBefore(alertDiv, document.querySelector('.card-outline'));
+            })
+            .catch(error => {
+                console.error('Error al obtener postulante:', error);
+                alert('Error al cargar datos del postulante. Revise la consola del navegador.');
+            });
+    }
+
+    document.getElementById('btn-limpiar-busqueda')?.addEventListener('click', function () {
+        document.getElementById('buscar_postulante').value = '';
+        document.getElementById('buscar_resultados').style.display = 'none';
+        postulanteBuscadoId = null;
+        // Limpiar campos
+        ['nombre', 'apellidos', 'ci', 'email', 'fecha_nacimiento', 'sexo', 'telefono', 'direccion', 'ciudad', 'colegio'].forEach(field => {
+            document.getElementById(field).value = '';
+        });
+    });
 </script>
 @stop

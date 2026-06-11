@@ -23,21 +23,21 @@ class UserSeeder extends Seeder
         // Usuario Administrador
         $admin = User::firstOrCreate(
             ['email' => 'yuliadmin@admin'],
-            ['name' => 'Yuliana Molina', 'password' => Hash::make('12345678')]
+            ['name' => 'Yuliana Molina', 'password' => Hash::make('12345678')]  // Admin mantiene contraseña fija
         );
         $admin->assignRole('ADMINISTRADOR');
 
         // Usuario Administrativo
         $administrativo = User::firstOrCreate(
             ['email' => 'juan@admin'],
-            ['name' => 'Juan Pérez', 'password' => Hash::make('12345678')]
+            ['name' => 'Juan Pérez', 'password' => Hash::make('12345678')]  // Admin mantiene contraseña fija
         );
         $administrativo->assignRole('ADMINISTRATIVO');
 
         // Usuario Docente
         $docente = User::firstOrCreate(
             ['email' => 'maria@admin'],
-            ['name' => 'María López', 'password' => Hash::make('12345678')]
+            ['name' => 'María López', 'password' => Hash::make('12345678')]  // Admin mantiene contraseña fija
         );
         // Datos de Gestión
         Gestion::firstOrCreate(['semestre'=> 1,'año'=> 2024], ['estado'=> 'Cerrada','created_at'=> now(),'updated_at'=> now()]);
@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
         
         //Datos para materias
         Materia::firstOrCreate(['nombre'=> 'Computación'], ['ponderacion'=> 0.25,'created_at'=> now(),'updated_at'=> now()]);
-        Materia::firstOrCreate(['nombre'=> 'Matemáticas'], ['ponderacion'=> 0.25,'created_at'=> now(),'updated_at'=> now()]);
+        Materia::firstOrCreate(['nombre'=> 'Matemática'], ['ponderacion'=> 0.25,'created_at'=> now(),'updated_at'=> now()]);
         Materia::firstOrCreate(['nombre'=> 'Física'], ['ponderacion'=> 0.25,'created_at'=> now(),'updated_at'=> now()]);
         Materia::firstOrCreate(['nombre'=> 'Inglés'], ['ponderacion'=> 0.25,'created_at'=> now(),'updated_at'=> now()]);
 

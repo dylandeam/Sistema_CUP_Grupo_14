@@ -30,7 +30,13 @@ class InscripcionController extends Controller
      */
     public function index()
     {
-        $inscripciones = Inscripcion::with('postulante')->orderBy('id', 'desc')->get();
+        // Solo mostrar inscripciones de gestiones activas
+        $inscripciones = Inscripcion::with(['postulante', 'gestion'])
+            ->whereHas('gestion', function ($query) {
+                $query->where('estado', 'Activa');
+            })
+            ->orderBy('id', 'desc')
+            ->get();
 
         return view('admin.inscripciones.index', compact('inscripciones'));
     }
@@ -48,6 +54,93 @@ class InscripcionController extends Controller
         $costo_inscripcion = config('inscripcion.costo');
 
         return view('admin.inscripciones.create', compact('postulantes', 'gestions', 'modalidades', 'carreras', 'turnos', 'costo_inscripcion'));
+    }
+
+    /**
+     * Search postulante by name or CI (AJAX endpoint)
+     */
+    public function buscarPostulante(Request $request)
+    {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json(['success' => false, 'message' => 'Ingrese al menos 2 caracteres']);
+        }
+
+        try {
+            $postulantes = Postulante::with('user')
+                ->where(function ($q) use ($query) {
+                    $q->where(DB::raw('LOWER(nombre)'), 'like', '%'.strtolower($query).'%')
+                      ->orWhere(DB::raw('LOWER(apellidos)'), 'like', '%'.strtolower($query).'%')
+                      ->orWhere('ci', 'like', '%'.$query.'%');
+                })
+                ->limit(10)
+                ->get();
+
+            $data = $postulantes->map(function ($postulante) {
+                return [
+                    'id' => $postulante->codigo,  // Usar codigo como ID (es la PK)
+                    'codigo' => $postulante->codigo,
+                    'nombre' => $postulante->nombre,
+                    'apellidos' => $postulante->apellidos,
+                    'ci' => $postulante->ci,
+                    'fecha_nacimiento' => $postulante->fecha_nacimiento,
+                    'sexo' => $postulante->sexo,
+                    'telefono' => $postulante->telefono,
+                    'direccion' => $postulante->direccion,
+                    'ciudad' => $postulante->ciudad,
+                    'colegio' => $postulante->colegio,
+                    'email' => $postulante->user?->email ?? 'Sin email',
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar postulante: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get postulante data for re-inscription (AJAX endpoint)
+     */
+    public function obtenerPostulante($id)
+    {
+        try {
+            $postulante = Postulante::with('user')->find($id);
+            
+            if (!$postulante) {
+                return response()->json(['success' => false, 'message' => 'Postulante no encontrado']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $postulante->codigo,  // Usar codigo como ID (es la PK)
+                    'codigo' => $postulante->codigo,
+                    'nombre' => $postulante->nombre,
+                    'apellidos' => $postulante->apellidos,
+                    'ci' => $postulante->ci,
+                    'fecha_nacimiento' => $postulante->fecha_nacimiento,
+                    'sexo' => $postulante->sexo,
+                    'telefono' => $postulante->telefono,
+                    'direccion' => $postulante->direccion,
+                    'ciudad' => $postulante->ciudad,
+                    'colegio' => $postulante->colegio,
+                    'email' => $postulante->user?->email ?? '',
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos del postulante: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /*
@@ -89,7 +182,7 @@ class InscripcionController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'carrera_primera_opcion_id' => 'required|exists:carreras,id|different:carrera_segunda_opcion_id',
             'carrera_segunda_opcion_id' => 'required|exists:carreras,id',
-            'monto_pago' => 'required_if:estado_pago,CONFIRMADO|nullable|numeric|min:0',
+            'monto_pago' => 'required_if:estado_pago,CONFIRMADO|nullable|numeric|min:700|max:700',
             'fecha_pago' => 'required_if:estado_pago,CONFIRMADO|nullable|date',
             'estado_pago' => 'required|in:PENDIENTE,CONFIRMADO',
             'comprobante' => 'nullable|string|max:255',
@@ -97,6 +190,7 @@ class InscripcionController extends Controller
         ]);
 
         if (!$postulante) {
+            // Crear nuevo postulante si no existe
             $user = User::create([
                 'name' => $request->nombre.' '.$request->apellidos,
                 'email' => $request->email,
@@ -131,10 +225,16 @@ class InscripcionController extends Controller
                 'foto' => $fotoPath,
             ]);
         } else {
-            $user = $postulante->user;
-            if ($user && $user->email !== $request->email) {
-                $user->update(['email' => $request->email]);
+            // Re-inscripción: postulante existente, NO crear nuevo usuario
+            // Solo actualizar email si cambió
+            if ($postulante->usuario_id) {
+                $user = $postulante->user;
+                if ($user && $user->email !== $request->email) {
+                    $user->update(['email' => $request->email]);
+                }
             }
+            
+            // Actualizar foto si se proporciona
             if ($request->hasFile('foto')) {
                 $fotoPath = $request->file('foto')->store('postulantes', 'public');
                 $postulante->update(['foto' => $fotoPath]);

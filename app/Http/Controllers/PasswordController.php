@@ -18,7 +18,15 @@ class PasswordController extends Controller
     {
         $request->validate([
             'current_password' => ['required'],
-            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+            'new_password' => [
+                'required', 
+                'string', 
+                'min:8', 
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};:\'"\\|,.<>\/?])/'
+            ],
+        ], [
+            'new_password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula y un carácter especial.',
         ]);
 
         /** @var \App\Models\User $user */ // Comentario para Intelephense

@@ -26,6 +26,11 @@ use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\CargaHorariaController;
 use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\NotaExamenController;
+use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\PostulanteGrupoController;
+use App\Http\Controllers\PromedioExamenController;
+use App\Http\Controllers\ResultadoController;
+use App\Http\Controllers\ReporteController;
 
 
 
@@ -176,6 +181,9 @@ Route::post('/admin/postulantes/import', [PostulanteController::class,'import'])
 // Rutas para Inscripciones
 Route::get('/admin/inscripciones', [InscripcionController::class,'index'])->name('admin.inscripciones.index')->middleware('auth', 'can:admin.inscripciones.index');
 Route::get('/admin/inscripciones/create', [InscripcionController::class,'create'])->name('admin.inscripciones.create')->middleware('auth', 'can:admin.inscripciones.create');
+// AJAX routes para búsqueda de postulantes
+Route::get('/admin/inscripciones/ajax/buscar-postulante', [InscripcionController::class,'buscarPostulante'])->name('admin.inscripciones.buscar')->middleware('auth', 'can:admin.inscripciones.create');
+Route::get('/admin/inscripciones/ajax/obtener/{id}', [InscripcionController::class,'obtenerPostulante'])->name('admin.inscripciones.obtener')->middleware('auth', 'can:admin.inscripciones.create');
 Route::post('/admin/inscripciones', [InscripcionController::class,'store'])->name('admin.inscripciones.store')->middleware('auth', 'can:admin.inscripciones.store');
 Route::post('/admin/inscripciones/paypal-email', [InscripcionController::class,'sendPaypalEmail'])->name('admin.inscripciones.sendPaypalEmail')->middleware('auth', 'can:admin.inscripciones.store');
 Route::get('/admin/inscripciones/{inscripcion}', [InscripcionController::class,'show'])->name('admin.inscripciones.show')->middleware('auth', 'can:admin.inscripciones.show');
@@ -218,6 +226,34 @@ Route::put('/admin/examenes/{examen}', [ExamenController::class,'update'])->name
 Route::delete('/admin/examenes/{examen}', [ExamenController::class,'destroy'])->name('admin.examenes.destroy')->middleware('auth', 'can:admin.examenes.destroy');
 
 // Rutas para Notas de Examen
-Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos')->middleware('auth');
-Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create')->middleware('auth');
-Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store')->middleware('auth');
+Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos')->middleware('auth', 'can:admin.notas_examen.inscritos');
+Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create')->middleware('auth', 'can:admin.notas_examen.create');
+Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store')->middleware('auth', 'can:admin.notas_examen.store');
+
+
+// Rutas para Asistencias
+Route::get('/admin/asistencias', [AsistenciaController::class,'index'])->name('admin.asistencias.index')->middleware('auth', 'can:admin.asistencias.index');
+Route::get('/admin/asistencias/create', [AsistenciaController::class,'index'])->name('admin.asistencias.create')->middleware('auth', 'can:admin.asistencias.create');
+Route::get('/admin/asistencias/postulantes', [AsistenciaController::class,'getInscritosPorGrupo'])->name('admin.asistencias.postulantes')->middleware('auth', 'can:admin.asistencias.postulantes');
+Route::post('/admin/asistencias', [AsistenciaController::class,'store'])->name('admin.asistencias.store')->middleware('auth', 'can:admin.asistencias.store');
+
+// Rutas para Postulantes en Grupos
+Route::get('/admin/postulante-grupos', [PostulanteGrupoController::class,'index'])->name('admin.postulante_grupos.index')->middleware('auth', 'can:admin.postulante_grupos.index');
+Route::get('/admin/postulante-grupos/{id}', [PostulanteGrupoController::class,'show'])->name('admin.postulante_grupos.show')->middleware('auth', 'can:admin.postulante_grupos.show');
+
+// Rutas para Promedios de Examen
+Route::get('/admin/promedios_examen', [PromedioExamenController::class,'index'])->name('admin.promedios_examen.index')->middleware('auth', 'can:admin.promedios_examen.index');
+Route::get('/admin/promedios_examen/{id}', [PromedioExamenController::class,'show'])->name('admin.promedios_examen.show')->middleware('auth', 'can:admin.promedios_examen.show');
+
+// Rutas para Resultados Finales
+Route::get('/admin/resultados-finales', [ResultadoController::class,'index'])->name('admin.resultados.index')->middleware('auth', 'can:admin.resultados.index');
+Route::get('/admin/resultados-finales/admitidos', [ResultadoController::class,'admitidos'])->name('admin.resultados.admitidos')->middleware('auth', 'can:admin.resultados.admitidos');
+Route::get('/admin/resultados-finales/no-admitidos', [ResultadoController::class,'noAdmitidos'])->name('admin.resultados.no_admitidos')->middleware('auth', 'can:admin.resultados.no_admitidos');
+Route::post('/admin/resultados-finales/cerrar', [ResultadoController::class,'cerrar'])->name('admin.resultados.cerrar')->middleware('auth', 'can:admin.resultados.index');
+
+// RUTA DE DEBUG (temporal - eliminar después de testing)
+Route::get('/admin/resultados-finales/debug/{inscripcionId}', [ResultadoController::class,'debug'])->name('admin.resultados.debug')->middleware('auth', 'can:admin.resultados.index');
+
+// Rutas para Reportes
+Route::get('/admin/reportes', [ReporteController::class,'index'])->name('admin.reportes.index')->middleware('auth', 'can:admin.reportes.index');
+Route::post('/admin/reportes/export', [ReporteController::class,'export'])->name('admin.reportes.export')->middleware('auth', 'can:admin.reportes.export');

@@ -147,6 +147,30 @@ class RolController extends Controller
                 return 'Exámenes';
             }
 
+            if (str_contains($name, 'nota_examen')) {
+                return 'Notas de Examen';
+            }
+
+            if (str_contains($name, 'asistencias')) {
+                return 'Asistencias';
+            }
+
+            if (str_contains($name, 'postulante_grupos')) {
+                return 'Postulantes en Grupos';
+            }
+
+            if (str_contains($name, 'promedios_examen')) {
+                return 'Promedios de Examen';
+            }
+
+            if (str_contains($name, 'resultados')) {
+                return 'Resultados Finales';
+            }
+
+            if (str_contains($name, 'reportes')) {
+                return 'Reportes';
+            }
+
             return 'Otros';
 
         });

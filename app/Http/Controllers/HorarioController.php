@@ -24,6 +24,14 @@ class HorarioController extends Controller
     public function create()
     {
         $turnos = Turno::all();
+        
+        // Validar que existan turnos registrados
+        if ($turnos->isEmpty()) {
+            return redirect()->route('admin.horarios.index')
+                ->with('error', 'Debes registrar al menos un turno antes de crear horarios.')
+                ->with('icono', 'warning');
+        }
+        
         return view('admin.horarios.create', compact('turnos'));
     }
 

@@ -39,7 +39,7 @@
                 <div class="card-body">
                     <form id="formFiltros">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="examen_id">Nro. de Examen <span style="color: red;">*</span></label>
                                     <select id="examen_id" name="examen_id" class="form-control" required>
@@ -52,22 +52,32 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="materia_grupo_id">Materia - Grupo <span style="color: red;">*</span></label>
-                                    <select id="materia_grupo_id" name="materia_grupo_id" class="form-control" required>
-                                        <option value="">-- Seleccione una materia y grupo --</option>
+                                    <label for="grupo_modalidad_id">Grupo - Modalidad <span style="color: red;">*</span></label>
+                                    <select id="grupo_modalidad_id" name="grupo_modalidad_id" class="form-control" required onchange="actualizarMateria()">
+                                        <option value="">-- Seleccione grupo y modalidad --</option>
                                         @foreach($cargasHorarias as $carga)
                                             <option value="{{ $carga->id }}" 
                                                     data-materia-id="{{ $carga->materia->id }}" 
-                                                    data-grupo-id="{{ $carga->grupo->id }}">
-                                                {{ $carga->materia->nombre }} - {{ $carga->grupo->nombre }}
+                                                    data-grupo-id="{{ $carga->grupo->id }}"
+                                                    data-materia-nombre="{{ $carga->materia->nombre }}">
+                                                {{ $carga->grupo->nombre }} - {{ $carga->grupo->modalidad->nombre }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="materia">Materia</label>
+                                    <input type="text" id="materia" class="form-control" 
+                                           value="{{ $materiaDocente?->nombre ?? 'No asignada' }}" 
+                                           readonly 
+                                           style="background-color: #f5f5f5;">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <button type="button" id="btnCargar" class="btn btn-primary btn-block" onclick="cargarInscritos()">
@@ -103,6 +113,7 @@
                                         <th style="width: 15%; text-align: center;">ID Inscripción</th>
                                         <th style="width: 15%; text-align: center;">Nota Materia</th>
                                         <th style="width: 15%; text-align: center;">Nota Ponderada</th>
+                                        <th style="width: 10%; text-align: center;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyNotas">
@@ -138,16 +149,23 @@
 
 @section('js')
 <script>
+function actualizarMateria() {
+    const select = document.getElementById('grupo_modalidad_id');
+    const selectedOption = select.options[select.selectedIndex];
+    const materiaNombre = selectedOption.getAttribute('data-materia-nombre') || 'No asignada';
+    document.getElementById('materia').value = materiaNombre;
+}
+
 function cargarInscritos() {
     const examenId = document.getElementById('examen_id').value;
-    const materiaGrupoId = document.getElementById('materia_grupo_id').value;
+    const grupoModalidadId = document.getElementById('grupo_modalidad_id').value;
 
-    if (!examenId || !materiaGrupoId) {
-        alert('Por favor seleccione examen y materia-grupo');
+    if (!examenId || !grupoModalidadId) {
+        alert('Por favor seleccione examen y grupo-modalidad');
         return;
     }
 
-    const select = document.getElementById('materia_grupo_id');
+    const select = document.getElementById('grupo_modalidad_id');
     const selectedOption = select.options[select.selectedIndex];
     const materiaId = selectedOption.getAttribute('data-materia-id');
     const grupoId = selectedOption.getAttribute('data-grupo-id');
@@ -237,6 +255,11 @@ function llenarTablaNotas(inscritos, materiaId) {
                        readonly 
                        style="background-color: #f5f5f5;">
             </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn btn-xs btn-info" onclick="editarNota(${inscrito.id_inscripcion})">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
         `;
 
         tbody.appendChild(fila);
@@ -253,8 +276,18 @@ function calcularNotaPonderada(input) {
     inputPonderada.value = notaPonderada;
 }
 
+function editarNota(idInscripcion) {
+    // Obtener la fila del estudiante
+    const fila = document.querySelector(`input[value="${idInscripcion}"]`).closest('tr');
+    const inputNota = fila.querySelector('.notaMateria');
+    
+    // Enfocar el campo de nota para editar
+    inputNota.focus();
+    inputNota.select();
+}
+
 // Permitir Enter en el select para cargar inscritos
-document.getElementById('materia_grupo_id')?.addEventListener('keypress', function(e) {
+document.getElementById('grupo_modalidad_id')?.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
         cargarInscritos();

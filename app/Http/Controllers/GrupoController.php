@@ -58,14 +58,17 @@ class GrupoController extends Controller
      */
     
     public function show(Grupo $grupo)
-{
-    $ocupados = \App\Models\Inscripcion::where('gestion_id', $grupo->id_gestion)
-        ->where('modalidad_id', $grupo->id_modalidad)
-        ->where('turno_id', $grupo->id_turno)
-        ->count();
+    {
+        // Cargar relaciones necesarias
+        $grupo->load(['gestion', 'turno', 'modalidad', 'aula']);
 
-    return view('admin.grupos.show', compact('grupo', 'ocupados'));
-}
+        $ocupados = \App\Models\Inscripcion::where('gestion_id', $grupo->id_gestion)
+            ->where('modalidad_id', $grupo->id_modalidad)
+            ->where('turno_id', $grupo->id_turno)
+            ->count();
+
+        return view('admin.grupos.show', compact('grupo', 'ocupados'));
+    }
 
 
 
@@ -160,6 +163,9 @@ class GrupoController extends Controller
 
     public function showhorario(Grupo $grupo)
     {
+        // Cargar relaciones necesarias
+        $grupo->load(['gestion', 'turno', 'modalidad', 'aula']);
+
         // Obtener los horarios del turno del grupo
         $horarios = Horario::where('turno_id', $grupo->id_turno)
             ->orderBy('hora_inicio')

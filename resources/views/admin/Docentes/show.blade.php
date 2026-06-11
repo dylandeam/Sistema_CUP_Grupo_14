@@ -113,17 +113,33 @@
                         </div>
                     </div>
 
-                    {{-- Información de Acceso --}}
+                    {{-- Información de Acceso y Grupos Asignados --}}
                     <div class="col-md-4">
-                        <div class="card card-outline card-secondary">
-                            <div class="card-header bg-secondary">
-                                <h5 class="card-title mb-0"><strong>Información de Acceso</strong></h5>
+                        <div class="card card-outline {{ $gruposAsignados >= 4 ? 'card-danger' : 'card-secondary' }}">
+                            <div class="card-header {{ $gruposAsignados >= 4 ? 'bg-danger' : 'bg-secondary' }}">
+                                <h5 class="card-title mb-0"><strong>{{ $gruposAsignados >= 4 ? 'Límite de Grupos' : 'Información de Acceso' }}</strong></h5>
                             </div>
                             <div class="card-body">
                                 <p>
                                     <strong>Rol:</strong>
                                     {{ optional($docente->user)->roles->pluck('name')->implode(', ') }}
                                 </p>
+                                <hr>
+                                <p>
+                                    <strong>Grupos Asignados:</strong> 
+                                    <span class="badge {{ $gruposAsignados >= 4 ? 'badge-danger' : 'badge-info' }}">
+                                        {{ $gruposAsignados }}/4
+                                    </span>
+                                </p>
+                                @if($gruposAsignados >= 4)
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>
+                                        <strong>¡Advertencia!</strong> Este docente ha alcanzado el límite máximo de 4 grupos asignados.
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
