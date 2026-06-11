@@ -163,7 +163,7 @@ class CargaHorariaReporteController extends Controller
 
     /**
      * Construir tabla semanal con estructura de días y horarios
-     * Usa el patrón de rotación del grupo para determinar en qué días se dicta cada materia
+     * Muestra cada materia en su día correspondiente con su horario
      */
     private function construirTablaSemanal($docente_codigo, Gestion $gestionActiva)
     {
@@ -177,115 +177,64 @@ class CargaHorariaReporteController extends Controller
             return collect();
         }
 
-        // Patrón de rotación de materias por día (mismo que GrupoController)
-        $patronesPorDia = [
-            'Lunes' => [0, 1, 3, 2],
-            'Martes' => [1, 2, 3, 0],
-            'Miércoles' => [2, 3, 1, 0],
-            'Jueves' => [3, 1, 0, 2],
-            'Viernes' => [0, 2, 1, 3],
-        ];
-
-        // Obtener todos los horarios de los turnos donde el docente dicta clases
-        $turnoIds = $cargas->pluck('grupo.id_turno')->unique();
-        $todosHorarios = Horario::whereIn('turno_id', $turnoIds)
-            ->orderBy('turno_id')
-            ->orderBy('hora_inicio')
-            ->get();
-
-        $dias = array_keys($patronesPorDia);
+        $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
         $tabla = [];
 
-        // Para cada horario, construir fila
-        foreach ($todosHorarios as $horario) {
-            $fila = [
-                'hora_display' => substr($horario->hora_inicio, 0, 5) . ' - ' . substr($horario->hora_fin, 0, 5),
-            ];
+        // Agrupar cargas por día de la semana
+        foreach ($dias as $dia) {
+            $cargasDelDia = $cargas->filter(function ($carga) use ($dia) {
+                return $carga->horario && $carga->horario->dia_semana === $dia;
+            })->sortBy(function ($carga) {
+                return $carga->horario->hora_inicio;
+            });
 
-            // Para cada día de la semana
-            foreach ($dias as $dia) {
-                $cargasDelDia = [];
-
-                // Buscar todas las cargas del docente en este horario y día
-                foreach ($cargas as $carga) {
-                    // Verificar si esta carga corresponde a este horario
-                    if ($carga->horario_id !== $horario->id) {
-                        continue;
-                    }
-
-                    // Obtener el grupo y sus materias
-                    $grupo = $carga->grupo;
+            // Para cada carga del día, crear una fila
+            foreach ($cargasDelDia as $carga) {
+                $horaDisplay = substr($carga->horario->hora_inicio, 0, 5) . ' - ' . substr($carga->horario->hora_fin, 0, 5);
+                
+                // Verificar si ya existe una fila para este horario
+                $filaExistente = collect($tabla)->firstWhere('horario_display', $horaDisplay);
+                
+                if (!$filaExistente) {
+                    // Crear nueva fila para este horario
+                    $fila = [
+                        'horario_display' => $horaDisplay,
+                        'hora_inicio' => $carga->horario->hora_inicio,
+                    ];
                     
-                    // Obtener las 4 materias de THIS grupo (no del sistema)
-                    $materiasGrupo = CargaHoraria::where('grupo_id', $grupo->id)
-                        ->where('gestion_id', $gestionActiva->id)
-                        ->with('materia')
-                        ->get()
-                        ->pluck('materia')
-                        ->unique('id')
-                        ->values()
-                        ->sortBy('nombre')
-                        ->take(4)
-                        ->values();
-
-                    // Encontrar el índice de esta materia en el grupo
-                    $indiceMateria = -1;
-                    foreach ($materiasGrupo as $idx => $mat) {
-                        if ($mat->id === $carga->materia_id) {
-                            $indiceMateria = $idx;
-                            break;
-                        }
+                    // Inicializar todos los días
+                    foreach ($dias as $d) {
+                        $fila[$d] = [];
                     }
-
-                    // Obtener los horarios del turno del grupo en orden
-                    $horariosDelTurno = Horario::where('turno_id', $grupo->id_turno)
-                        ->orderBy('hora_inicio')
-                        ->get();
-
-                    // Encontrar el período (posición) de este horario, excluyendo reces
-                    $periodoClase = -1;
-                    $periodoActual = 0;
-                    foreach ($horariosDelTurno as $h) {
-                        // Verificar si es receso
-                        $hInicio = Carbon::createFromFormat('H:i:s', $h->hora_inicio);
-                        $hFin = Carbon::createFromFormat('H:i:s', $h->hora_fin);
-                        $hDuracion = $hInicio->diffInMinutes($hFin);
-                        
-                        if ($hDuracion >= 20) {
-                            // Es clase, no receso
-                            if ($h->id === $horario->id) {
-                                $periodoClase = $periodoActual;
-                                break;
-                            }
-                            $periodoActual++;
-                        }
-                    }
-
-                    // Verificar si la duración es receso (< 20 minutos)
-                    $inicio = Carbon::createFromFormat('H:i:s', $horario->hora_inicio);
-                    $fin = Carbon::createFromFormat('H:i:s', $horario->hora_fin);
-                    $duracion = $inicio->diffInMinutes($fin);
-                    $esReceso = $duracion < 20;
-
-                    // Aplicar patrón si válido
-                    if (!$esReceso && $indiceMateria >= 0 && $periodoClase >= 0) {
-                        $patronDelDia = $patronesPorDia[$dia];
-                        $indiceEsperado = $periodoClase % 4;
-                        $materiaEsperada = $patronDelDia[$indiceEsperado] ?? null;
-
-                        if ($materiaEsperada === $indiceMateria) {
-                            $cargasDelDia[] = [
-                                'materia' => $carga->materia?->nombre,
-                                'grupo' => $carga->grupo?->nombre,
-                            ];
-                        }
+                    
+                    // Agregar esta carga al día
+                    $fila[$dia][] = [
+                        'materia' => $carga->materia?->nombre,
+                        'grupo' => $carga->grupo?->nombre,
+                    ];
+                    
+                    $tabla[] = $fila;
+                } else {
+                    // Agregar carga al día de la fila existente
+                    $key = array_search($filaExistente, $tabla, true);
+                    if ($key !== false) {
+                        $tabla[$key][$dia][] = [
+                            'materia' => $carga->materia?->nombre,
+                            'grupo' => $carga->grupo?->nombre,
+                        ];
                     }
                 }
-
-                $fila[$dia] = count($cargasDelDia) > 0 ? $cargasDelDia : null;
             }
+        }
 
-            $tabla[] = $fila;
+        // Ordenar por hora de inicio
+        usort($tabla, function ($a, $b) {
+            return strcmp($a['hora_inicio'], $b['hora_inicio']);
+        });
+
+        // Remover el campo hora_inicio (no se usa en la vista)
+        foreach ($tabla as &$fila) {
+            unset($fila['hora_inicio']);
         }
 
         return collect($tabla);
@@ -293,11 +242,11 @@ class CargaHorariaReporteController extends Controller
 
     /**
      * Construir tabla de horario diaria (por horas)
-     * Filtra solo las cargas que corresponden al día especificado, usando el patrón del grupo
+     * Muestra todas las clases que dicta en el día seleccionado, con información de otros días
      */
     private function construirTablaHoraria($docente_codigo, $fecha, Gestion $gestionActiva)
     {
-        // Obtener el día de la semana
+        // Obtener el día de la semana de la fecha
         $diaSemana = Carbon::parse($fecha)->dayName;
         
         // Mapear nombre de día en inglés a español
@@ -313,113 +262,80 @@ class CargaHorariaReporteController extends Controller
         
         $diaEspanol = $diasMapeo[$diaSemana] ?? null;
 
-        // Patrón de rotación (mismo que GrupoController)
-        $patronesPorDia = [
-            'Lunes' => [0, 1, 3, 2],
-            'Martes' => [1, 2, 3, 0],
-            'Miércoles' => [2, 3, 1, 0],
-            'Jueves' => [3, 1, 0, 2],
-            'Viernes' => [0, 2, 1, 3],
-        ];
-
         // Obtener todas las cargas del docente
         $cargas = CargaHoraria::with(['horario', 'materia', 'grupo'])
             ->where('docente_codigo', $docente_codigo)
             ->where('gestion_id', $gestionActiva->id)
             ->get();
 
-        // Obtener todos los horarios de los turnos donde el docente dicta clases
-        $turnoIds = $cargas->pluck('grupo.id_turno')->unique();
-        $todosHorarios = Horario::whereIn('turno_id', $turnoIds)
-            ->orderBy('turno_id')
-            ->orderBy('hora_inicio')
-            ->get();
+        if ($cargas->isEmpty()) {
+            return collect();
+        }
+
+        // Filtrar solo las cargas del día seleccionado
+        $cargasDelDia = $cargas->filter(function ($carga) use ($diaEspanol) {
+            return $carga->horario && $carga->horario->dia_semana === $diaEspanol;
+        })->sortBy(function ($carga) {
+            return $carga->horario->hora_inicio;
+        });
 
         $tabla = [];
-        foreach ($todosHorarios as $horario) {
-            $materias = [];
 
-            // Buscar todas las cargas del docente en este horario
-            foreach ($cargas as $carga) {
-                if ($carga->horario_id !== $horario->id) {
-                    continue;
-                }
+        // Para cada horario del día, agrupar materias
+        foreach ($cargasDelDia as $carga) {
+            $horaDisplay = substr($carga->horario->hora_inicio, 0, 5) . ' - ' . substr($carga->horario->hora_fin, 0, 5);
+            
+            // Obtener todos los días donde esta materia se enseña
+            $diasConEstaMateria = $cargas
+                ->where('materia_id', $carga->materia_id)
+                ->where('grupo_id', $carga->grupo_id)
+                ->pluck('horario.dia_semana')
+                ->unique()
+                ->values()
+                ->toArray();
 
-                // Obtener el grupo y sus materias
-                $grupo = $carga->grupo;
-                
-                // Obtener las 4 materias de THIS grupo
-                $materiasGrupo = CargaHoraria::where('grupo_id', $grupo->id)
-                    ->where('gestion_id', $gestionActiva->id)
-                    ->with('materia')
-                    ->get()
-                    ->pluck('materia')
-                    ->unique('id')
-                    ->values()
-                    ->sortBy('nombre')
-                    ->take(4)
-                    ->values();
+            $diasDisplay = implode(', ', $diasConEstaMateria);
 
-                // Encontrar el índice de esta materia
-                $indiceMateria = -1;
-                foreach ($materiasGrupo as $idx => $mat) {
-                    if ($mat->id === $carga->materia_id) {
-                        $indiceMateria = $idx;
-                        break;
-                    }
-                }
-
-                // Obtener los horarios del turno del grupo
-                $horariosDelTurno = Horario::where('turno_id', $grupo->id_turno)
-                    ->orderBy('hora_inicio')
-                    ->get();
-
-                // Encontrar el período (posición) de este horario, excluyendo reces
-                $periodoClase = -1;
-                $periodoActual = 0;
-                foreach ($horariosDelTurno as $h) {
-                    // Verificar si es receso
-                    $hInicio = Carbon::createFromFormat('H:i:s', $h->hora_inicio);
-                    $hFin = Carbon::createFromFormat('H:i:s', $h->hora_fin);
-                    $hDuracion = $hInicio->diffInMinutes($hFin);
-                    
-                    if ($hDuracion >= 20) {
-                        // Es clase, no receso
-                        if ($h->id === $horario->id) {
-                            $periodoClase = $periodoActual;
-                            break;
-                        }
-                        $periodoActual++;
-                    }
-                }
-
-                // Verificar si es receso
-                $inicio = Carbon::createFromFormat('H:i:s', $horario->hora_inicio);
-                $fin = Carbon::createFromFormat('H:i:s', $horario->hora_fin);
-                $duracion = $inicio->diffInMinutes($fin);
-                $esReceso = $duracion < 20;
-
-                // Si NO es receso y coincide con el día del patrón
-                if (!$esReceso && $indiceMateria >= 0 && $periodoClase >= 0 && $diaEspanol) {
-                    $patronDelDia = $patronesPorDia[$diaEspanol];
-                    $indiceEsperado = $periodoClase % 4;
-                    $materiaEsperada = $patronDelDia[$indiceEsperado] ?? null;
-
-                    if ($materiaEsperada === $indiceMateria) {
-                        $materias[] = [
+            // Buscar si ya existe una fila para este horario
+            $filaExistente = collect($tabla)->firstWhere('horario_display', $horaDisplay);
+            
+            if (!$filaExistente) {
+                // Crear nueva fila
+                $tabla[] = [
+                    'horario_display' => $horaDisplay,
+                    'hora_inicio' => $carga->horario->hora_inicio,
+                    'materias' => [
+                        [
                             'materia' => $carga->materia?->nombre,
                             'grupo' => $carga->grupo?->nombre,
+                            'dias' => $diasDisplay,
+                        ]
+                    ],
+                ];
+            } else {
+                // Agregar a la fila existente si no está ya
+                $key = array_search($filaExistente, $tabla, true);
+                if ($key !== false) {
+                    $yaAgregada = collect($tabla[$key]['materias'])->firstWhere('materia', $carga->materia?->nombre);
+                    if (!$yaAgregada) {
+                        $tabla[$key]['materias'][] = [
+                            'materia' => $carga->materia?->nombre,
+                            'grupo' => $carga->grupo?->nombre,
+                            'dias' => $diasDisplay,
                         ];
                     }
                 }
             }
+        }
 
-            $fila = [
-                'hora_display' => substr($horario->hora_inicio, 0, 5) . ' - ' . substr($horario->hora_fin, 0, 5),
-                'materias' => $materias,
-            ];
-            
-            $tabla[] = $fila;
+        // Ordenar por hora de inicio
+        usort($tabla, function ($a, $b) {
+            return strcmp($a['hora_inicio'], $b['hora_inicio']);
+        });
+
+        // Remover el campo hora_inicio (no se usa en la vista)
+        foreach ($tabla as &$fila) {
+            unset($fila['hora_inicio']);
         }
 
         return collect($tabla);

@@ -64,10 +64,22 @@ class PromedioExamenController extends Controller
         ->orderBy('nro_examen')
         ->get();
 
+    // Obtener inscritos del grupo
+    // Primero intentar por grupo_id (nuevos inscritos después de migración)
     $inscritos = Inscripcion::where('grupo_id', $grupo->id)
         ->with('postulante')
         ->orderBy('postulante_codigo')
         ->get();
+
+    // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
+    if ($inscritos->isEmpty()) {
+        $inscritos = Inscripcion::where('gestion_id', $gestionActiva->id)
+            ->where('modalidad_id', $grupo->id_modalidad)
+            ->where('turno_id', $grupo->id_turno)
+            ->with('postulante')
+            ->orderBy('postulante_codigo')
+            ->get();
+    }
 
     $postulantesProcesados = [];
 

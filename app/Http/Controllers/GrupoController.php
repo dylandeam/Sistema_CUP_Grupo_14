@@ -62,7 +62,15 @@ class GrupoController extends Controller
         // Cargar relaciones necesarias
         $grupo->load(['gestion', 'turno', 'modalidad', 'aula']);
 
+        // Contar ocupados - primero intenta por grupo_id, si no hay, usa modalidad+turno+gestion
         $ocupados = \App\Models\Inscripcion::where('grupo_id', $grupo->id)->count();
+        
+        if ($ocupados === 0) {
+            $ocupados = \App\Models\Inscripcion::where('gestion_id', $grupo->id_gestion)
+                ->where('modalidad_id', $grupo->id_modalidad)
+                ->where('turno_id', $grupo->id_turno)
+                ->count();
+        }
 
         return view('admin.grupos.show', compact('grupo', 'ocupados'));
     }

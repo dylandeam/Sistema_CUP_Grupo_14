@@ -261,6 +261,7 @@
                                         <tr>
                                             <th style="width: 120px;">Horario</th>
                                             <th>Materia(s)</th>
+                                            <th style="width: 250px;">También Pasa En:</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -270,8 +271,39 @@
                                                 <td>
                                                     @if (count($horario['materias']) > 0)
                                                         @foreach ($horario['materias'] as $item)
+                                                            <div style="margin-bottom: 8px; padding: 8px; background-color: #e8f4f8; border-left: 3px solid #1976d2; border-radius: 3px;">
+                                                                <strong style="color: #1976d2;">{{ $item['materia'] ?? 'N/A' }}</strong> 
+                                                                <br><small style="color: #555;">Grupo: {{ $item['grupo'] ?? 'N/A' }}</small>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
+                                                        <span class="text-muted">---</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if (count($horario['materias']) > 0)
+                                                        @foreach ($horario['materias'] as $item)
+                                                            @php
+                                                                $diasList = explode(', ', $item['dias']);
+                                                                $diaHoy = \Carbon\Carbon::parse($fecha)->format('l');
+                                                                $diasMapeo = [
+                                                                    'Monday' => 'Lunes',
+                                                                    'Tuesday' => 'Martes',
+                                                                    'Wednesday' => 'Miércoles',
+                                                                    'Thursday' => 'Jueves',
+                                                                    'Friday' => 'Viernes',
+                                                                ];
+                                                                $diaHoyEspanol = $diasMapeo[$diaHoy] ?? $diaHoy;
+                                                                $diasSinHoy = array_filter($diasList, function($d) use ($diaHoyEspanol) {
+                                                                    return $d !== $diaHoyEspanol;
+                                                                });
+                                                            @endphp
                                                             <div style="margin-bottom: 8px;">
-                                                                <strong>{{ $item['materia'] ?? 'N/A' }}</strong> ({{ $item['grupo'] ?? 'N/A' }})
+                                                                @if (count($diasSinHoy) > 0)
+                                                                    <small><strong>{{ implode(', ', $diasSinHoy) }}</strong></small>
+                                                                @else
+                                                                    <small class="text-muted">Solo hoy</small>
+                                                                @endif
                                                             </div>
                                                         @endforeach
                                                     @else

@@ -33,7 +33,17 @@ class PostulanteGrupoController extends Controller
 
         // Contar inscritos por grupo
         $grupos = $grupos->map(function ($grupo) {
+            // Intentar por grupo_id primero
             $inscritos = Inscripcion::where('grupo_id', $grupo->id)->count();
+            
+            // Si no hay, usar modalidad+turno+gestion
+            if ($inscritos === 0) {
+                $inscritos = Inscripcion::where('gestion_id', $grupo->id_gestion)
+                    ->where('modalidad_id', $grupo->id_modalidad)
+                    ->where('turno_id', $grupo->id_turno)
+                    ->count();
+            }
+            
             $grupo->total_inscritos = $inscritos;
             return $grupo;
         });
@@ -60,11 +70,22 @@ class PostulanteGrupoController extends Controller
         // Cargar modalidad y turno
         $grupo->load(['modalidad', 'turno']);
 
-        // Obtener inscritos del grupo por grupo_id
+        // Obtener inscritos del grupo
+        // Primero intentar por grupo_id (nuevos inscritos después de migración)
         $inscritos = Inscripcion::where('grupo_id', $grupo->id)
             ->with('postulante')
             ->orderBy('postulante_codigo')
             ->get();
+
+        // Si no hay inscritos con grupo_id, buscar por modalidad+turno+gestion (inscritos antiguos)
+        if ($inscritos->isEmpty()) {
+            $inscritos = Inscripcion::where('gestion_id', $gestionActiva->id)
+                ->where('modalidad_id', $grupo->id_modalidad)
+                ->where('turno_id', $grupo->id_turno)
+                ->with('postulante')
+                ->orderBy('postulante_codigo')
+                ->get();
+        }
 
         return view('admin.postulante_grupos.show', compact('grupo', 'inscritos', 'gestionActiva'));
     }
