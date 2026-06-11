@@ -227,12 +227,18 @@ Route::put('/admin/examenes/{examen}', [ExamenController::class,'update'])->name
 Route::delete('/admin/examenes/{examen}', [ExamenController::class,'destroy'])->name('admin.examenes.destroy')->middleware('auth', 'can:admin.examenes.destroy');
 
 // Rutas para Notas de Examen
-Route::middleware(['auth'])->group(function () {
-    Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos');
-    Route::post('/admin/notas_examen/generar-aleatorias', [NotaExamenController::class,'generarNotasAleatorias'])->name('admin.notas_examen.generar_aleatorias')->middleware('role:ADMINISTRADOR');
-    Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create');
-    Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store');
-});
+// Rutas para Notas de Examen
+Route::get('/admin/notas_examen/inscritos', [NotaExamenController::class,'getInscritosPorGrupo'])->name('admin.notas_examen.inscritos')->middleware('auth', 'can:admin.notas_examen.inscritos');
+Route::post('/admin/notas_examen/generar-aleatorias', [NotaExamenController::class,'generarNotasAleatorias'])->name('admin.notas_examen.generar_aleatorias')->middleware('auth', 'role:ADMINISTRADOR,DOCENTE');
+Route::get('/admin/notas_examen/create', [NotaExamenController::class,'create'])->name('admin.notas_examen.create')->middleware('auth', 'can:admin.notas_examen.create');
+Route::post('/admin/notas_examen', [NotaExamenController::class,'store'])->name('admin.notas_examen.store')->middleware('auth', 'can:admin.notas_examen.store');
+
+// Rutas para Asistencias
+Route::get('/admin/asistencias', [AsistenciaController::class,'index'])->name('admin.asistencias.index')->middleware('auth', 'can:admin.asistencias.index');
+Route::get('/admin/asistencias/create', [AsistenciaController::class,'index'])->name('admin.asistencias.create')->middleware('auth', 'can:admin.asistencias.create');
+Route::get('/admin/asistencias/postulantes', [AsistenciaController::class,'getInscritosPorGrupo'])->name('admin.asistencias.postulantes')->middleware('auth', 'can:admin.asistencias.postulantes');
+Route::post('/admin/asistencias/marcar-presentes', [AsistenciaController::class,'marcarTodosPresentes'])->name('admin.asistencias.marcar_presentes')->middleware('auth', 'role:ADMINISTRADOR,DOCENTE');
+Route::post('/admin/asistencias', [AsistenciaController::class,'store'])->name('admin.asistencias.store')->middleware('auth', 'can:admin.asistencias.store');
 
 
 // Rutas para Asistencias

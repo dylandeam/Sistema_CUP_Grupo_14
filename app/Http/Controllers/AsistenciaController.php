@@ -159,6 +159,71 @@ class AsistenciaController extends Controller
     }
 
     /**
+     * Marcar todos los inscritos como presentes automáticamente
+     */
+    public function marcarTodosPresentes(Request $request)
+    {
+        try {
+            // Obtener gestión activa
+            $gestionActiva = Gestion::where('estado', 'Activa')->first();
+            if (!$gestionActiva) {
+                return response()->json(['error' => 'No hay gestión activa'], 400);
+            }
+
+            // Obtener todos los inscritos de la gestión
+            $inscritos = Inscripcion::where('gestion_id', $gestionActiva->id)
+                ->with('postulante')
+                ->get();
+
+            if ($inscritos->isEmpty()) {
+                return response()->json(['error' => 'No hay inscritos para esta gestión'], 400);
+            }
+
+            $contadorAsistencias = 0;
+            $fecha = now()->toDateString();
+
+            // Obtener todos los grupos de la gestión
+            $grupos = Grupo::where('id_gestion', $gestionActiva->id)->get();
+
+            // Para cada inscrito
+            foreach ($inscritos as $inscripcion) {
+                // Para cada grupo de la gestión
+                foreach ($grupos as $grupo) {
+                    // Marcar como presente
+                    Asistencia::updateOrCreate(
+                        [
+                            'codigo_postulante' => $inscripcion->postulante_codigo,
+                            'id_grupo' => $grupo->id,
+                            'fecha' => $fecha,
+                        ],
+                        [
+                            'estado' => 'Presente',
+                        ]
+                    );
+
+                    $contadorAsistencias++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se marcaron exitosamente {$contadorAsistencias} asistencias como presentes.",
+                'conteo' => [
+                    'inscritos' => $inscritos->count(),
+                    'grupos' => $grupos->count(),
+                    'asistencias_totales' => $contadorAsistencias
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error marcando todos presentes: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(Asistencia $asistencia)

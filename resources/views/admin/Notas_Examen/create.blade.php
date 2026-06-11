@@ -31,12 +31,12 @@
     @endif
 
     @if($gestionActiva && isset($docente) && count($cargasHorarias) > 0)
-        {{-- Botón para administrador: Generar notas aleatorias --}}
-        @if(auth()->user()->hasRole('ADMINISTRADOR'))
+        {{-- Botón para administrador y docente: Generar notas aleatorias --}}
+        @if(auth()->user()->hasRole('ADMINISTRADOR') || auth()->user()->hasRole('DOCENTE'))
         <div class="col-md-12 mb-3">
             <div class="card card-outline card-warning">
                 <div class="card-header bg-warning">
-                    <h3 class="card-title"><b>Herramientas de Administrador</b></h3>
+                    <h3 class="card-title"><b>Herramientas Rápidas</b></h3>
                 </div>
                 <div class="card-body">
                     <button type="button" class="btn btn-warning" onclick="generarNotasAleatorias()">

@@ -31,6 +31,26 @@
     @endif
 
     @if($gestionActiva && isset($docente) && count($grupos) > 0)
+        {{-- Botón para administrador y docente: Marcar todos presentes --}}
+        @if(auth()->user()->hasRole('ADMINISTRADOR') || auth()->user()->hasRole('DOCENTE'))
+        <div class="col-md-12 mb-3">
+            <div class="card card-outline card-warning">
+                <div class="card-header bg-warning">
+                    <h3 class="card-title"><b>Herramientas Rápidas</b></h3>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-warning" onclick="marcarTodosPresentes()">
+                        <i class="fas fa-check-circle mr-2"></i>Marcar Todos Como Presentes
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Marca automáticamente a todos los inscritos como presentes en todos los grupos.
+                    </small>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="col-md-12">
             <div class="card card-outline card-primary">
                 <div class="card-header bg-primary">
@@ -207,6 +227,57 @@ function editarAsistencia(boton) {
     
     // Enfocar y abrir el select para editar
     select.focus();
+}
+
+function marcarTodosPresentes() {
+    if (!confirm('¿Estás seguro de que deseas marcar a todos los inscritos como presentes en todos los grupos? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    const btnMarcar = event.target;
+    btnMarcar.disabled = true;
+    btnMarcar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Marcando presentes...';
+
+    const url = '{{ route("admin.asistencias.marcar_presentes") }}';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else if (data.success) {
+            const mensaje = `✓ Asistencias registradas exitosamente!\n\n` +
+                           `Inscritos: ${data.conteo.inscritos}\n` +
+                           `Grupos: ${data.conteo.grupos}\n` +
+                           `Total de asistencias: ${data.conteo.asistencias_totales}\n\n` +
+                           `${data.message}`;
+            alert(mensaje);
+            // Recargar la página después de 2 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al marcar presentes: ' + error.message);
+    })
+    .finally(() => {
+        btnMarcar.disabled = false;
+        btnMarcar.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Marcar Todos Como Presentes';
+    });
 }
 </script>
 @stop
